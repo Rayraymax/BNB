@@ -6,4 +6,4 @@ export const LOCAL_ADMIN = {
   password: "demo-admin"
 };
 
-export const SITE_BASE_URL = "";
+export const SITE_BASE_URL = "alkeyhomes.vercel.app";
