@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" role="img" aria-label="Illustrated hillside veranda facing Ngong Hills at sunset">
+  <defs>
+    <linearGradient id="sky" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#f5cf8d"/>
+      <stop offset=".45" stop-color="#d9e1d4"/>
+      <stop offset="1" stop-color="#4c6b58"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="1000" fill="url(#sky)"/>
+  <circle cx="1235" cy="220" r="88" fill="#d4922f" opacity=".9"/>
+  <path d="M0 550c180-70 286-83 432-24 185 74 265 50 430-24 203-91 391-72 738 74v424H0Z" fill="#254535"/>
+  <path d="M0 672c176-49 311-62 510 6 235 80 426 19 603-31 156-44 294-30 487 64v289H0Z" fill="#163426"/>
+  <path d="M0 762h1600v238H0Z" fill="#efece1"/>
+  <path d="M170 720h640v222H170Z" fill="#f8f7f1"/>
+  <path d="M170 720h640" stroke="#163426" stroke-width="10"/>
+  <path d="M240 770h118v172H240Zm188 0h118v172H428Zm188 0h118v172H616Z" fill="#dfe6dc" stroke="#163426" stroke-width="5"/>
+  <path d="M91 942h1518" stroke="#d4922f" stroke-width="10" opacity=".7"/>
+</svg>
