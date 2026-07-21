@@ -113,9 +113,6 @@ p {
 }
 
 .page-pad {
-  max-width: 96rem;
-  margin-left: auto;
-  margin-right: auto;
   padding-left: clamp(1rem, 6vw, 6rem);
   padding-right: clamp(1rem, 6vw, 6rem);
 }
@@ -528,6 +525,9 @@ p {
 }
 
 .why-luxury-grid {
+  max-width: 96rem;
+  margin-left: auto;
+  margin-right: auto;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   border-top: 1px solid rgba(224, 122, 31, 0.34);
@@ -579,6 +579,9 @@ p {
 }
 
 .section-head {
+  max-width: 96rem;
+  margin-left: auto;
+  margin-right: auto;
   display: flex;
   align-items: end;
   justify-content: space-between;
@@ -605,6 +608,9 @@ p {
 }
 
 .room-grid {
+  max-width: 96rem;
+  margin-left: auto;
+  margin-right: auto;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: clamp(1rem, 3vw, 2rem);
@@ -660,6 +666,9 @@ blockquote,
 }
 
 .service-grid {
+  max-width: 96rem;
+  margin-left: auto;
+  margin-right: auto;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: clamp(1rem, 2.5vw, 1.5rem);
@@ -694,6 +703,9 @@ blockquote,
 }
 
 .testimonial-grid {
+  max-width: 96rem;
+  margin-left: auto;
+  margin-right: auto;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1.5rem;
@@ -723,6 +735,9 @@ cite {
 }
 
 .location-grid {
+  max-width: 96rem;
+  margin-left: auto;
+  margin-right: auto;
   display: grid;
   grid-template-columns: minmax(0, 1.15fr) minmax(18rem, 0.85fr);
   gap: clamp(2rem, 5vw, 5rem);
@@ -803,6 +818,9 @@ cite {
 }
 
 .gallery {
+  max-width: 96rem;
+  margin-left: auto;
+  margin-right: auto;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;

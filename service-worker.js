@@ -1,4 +1,4 @@
-const CACHE_NAME = "bnb-platform-v2";
+const CACHE_NAME = "bnb-platform-v3";
 const APP_SHELL = [
   "/",
   "/index.html",
@@ -13,7 +13,8 @@ const APP_SHELL = [
   "/assets/room-ridge.svg",
   "/assets/brand/alkey-logo.png",
   "/icons/icon-192.png",
-  "/icons/icon-512.png"
+  "/icons/icon-512.png",
+  "/favicon.ico"
 ];
 
 self.addEventListener("install", (event) => {
