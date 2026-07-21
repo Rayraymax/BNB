@@ -1,6 +1,6 @@
 import { SITE_BASE_URL } from "../config.js";
 
-const defaultImage = "/public/assets/uploads/alkey-building-background.jpeg";
+const defaultImage = "/assets/uploads/alkey-building-background.jpeg";
 
 function absoluteUrl(path) {
   if (!path) return SITE_BASE_URL || location.origin;

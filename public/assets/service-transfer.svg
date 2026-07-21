@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="560" viewBox="0 0 800 560" role="img" aria-label="Airport pickup service">
+  <rect width="800" height="560" fill="#eef3f1"/>
+  <path d="M112 354h576" stroke="#163426" stroke-width="10" stroke-linecap="round"/>
+  <path d="M214 314h372l62 40H162Z" fill="#ffffff" stroke="#163426" stroke-width="8" stroke-linejoin="round"/>
+  <path d="M282 314l64-82h124l92 82Z" fill="#d8e7da" stroke="#163426" stroke-width="8"/>
+  <circle cx="278" cy="382" r="43" fill="#163426"/>
+  <circle cx="548" cy="382" r="43" fill="#163426"/>
+  <path d="M125 171l236 54 238-88-41 77 99 40-58 27-116-16-144 80-54-22 78-80-238-37Z" fill="#d4922f"/>
+</svg>

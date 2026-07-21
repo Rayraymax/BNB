@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="720" viewBox="0 0 1000 720" role="img" aria-label="Garden room with veranda and greenery">
+  <rect width="1000" height="720" fill="#edf1e8"/>
+  <rect x="80" y="80" width="840" height="520" fill="#fbfaf4" stroke="#b9c5b5" stroke-width="8"/>
+  <rect x="135" y="150" width="270" height="250" fill="#d8e7da" stroke="#163426" stroke-width="5"/>
+  <rect x="595" y="150" width="270" height="250" fill="#d8e7da" stroke="#163426" stroke-width="5"/>
+  <rect x="180" y="455" width="640" height="75" rx="18" fill="#163426"/>
+  <rect x="220" y="420" width="560" height="78" rx="24" fill="#f4f2ea" stroke="#d4922f" stroke-width="6"/>
+  <circle cx="215" cy="120" r="42" fill="#d4922f"/>
+  <path d="M110 610c148-65 257-68 381-16 153 64 261 47 399-18v144H110Z" fill="#557761"/>
+</svg>

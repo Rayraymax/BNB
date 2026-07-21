@@ -10,7 +10,7 @@ export const mockData = {
       "ALKEY Homes is built for guests who want the comfort of a private apartment with the support of a responsive hospitality team. Our Roysambu stays are thoughtfully prepared for business travel, romantic getaways and relaxed city visits, with clean interiors, convenient services and instant WhatsApp assistance from check-in to check-out.",
     story:
       "We started ALKEY Homes with a simple belief: a stay should feel less like a rental and more like arriving somewhere already prepared for you. Every apartment is professionally managed, carefully cleaned, verified before check-in and supported by a team that treats hospitality as a personal promise.",
-    coverImage: "/public/assets/uploads/alkey-building-background.jpeg",
+    coverImage: "/assets/uploads/alkey-building-background.jpeg",
     coverVideo: "",
     whatsapp: "254704330604",
     phone: "+254 704 330604",
@@ -83,9 +83,9 @@ export const mockData = {
       capacity: 2,
       size: "1 bedroom apartment",
       beds: "Queen bed",
-      coverImage: "/public/assets/uploads/alkey-building-background.jpeg",
+      coverImage: "/assets/uploads/alkey-building-background.jpeg",
       coverVideo: "",
-      gallery: ["/public/assets/uploads/alkey-building-background.jpeg", "/public/assets/room-garden.svg"],
+      gallery: ["/assets/uploads/alkey-building-background.jpeg", "/assets/room-garden.svg"],
       description:
         "A warm, modern apartment prepared for easy city stays in Roysambu. Ideal for couples, solo guests and business travel, with fast Wi-Fi, Smart TV, clean linens and WhatsApp support.",
       amenities: ["Queen bed", "Smart TV", "Fast Wi-Fi", "Kitchen access", "Self check-in", "Hot shower", "Secure building"],
@@ -103,9 +103,9 @@ export const mockData = {
       capacity: 2,
       size: "premium apartment",
       beds: "Queen bed",
-      coverImage: "/public/assets/uploads/alkey-building-background.jpeg",
+      coverImage: "/assets/uploads/alkey-building-background.jpeg",
       coverVideo: "",
-      gallery: ["/public/assets/uploads/alkey-building-background.jpeg", "/public/assets/room-ridge.svg"],
+      gallery: ["/assets/uploads/alkey-building-background.jpeg", "/assets/room-ridge.svg"],
       description:
         "A premium Roysambu apartment with a polished, comfortable feel for guests who want privacy, convenience and responsive support throughout the stay.",
       amenities: ["Queen bed", "Smart TV", "Fast Wi-Fi", "Kitchen essentials", "Self check-in", "Guest services", "Secure building"],
@@ -122,7 +122,7 @@ export const mockData = {
       name: "Koffi Koffi Coffee",
       status: "published",
       priceLabel: "menu pricing",
-      coverImage: "/public/assets/services/koffi-koffi.png",
+      coverImage: "/assets/services/koffi-koffi.jpg",
       shortDescription: "Nearby coffee option for guests who want a quick cafe run.",
       description:
         "Order coffee, snacks or cafe items through guest support. We can share the current menu and help coordinate pickup or delivery to your apartment.",
@@ -141,7 +141,7 @@ export const mockData = {
       name: "Meat Delivery",
       status: "published",
       priceLabel: "menu pricing",
-      coverImage: "/public/assets/services/meat-delivery.png",
+      coverImage: "/assets/services/meat-delivery.jpg",
       shortDescription: "Meat delivery contact for guests cooking during longer stays.",
       description:
         "Send your order or shopping note on WhatsApp and guest support will help confirm availability, price and delivery timing.",
@@ -160,7 +160,7 @@ export const mockData = {
       name: "Kiosk Delivery",
       status: "published",
       priceLabel: "from KSh 200",
-      coverImage: "/public/assets/services/kiosk-delivery.png",
+      coverImage: "/assets/services/kiosk-delivery.jpg",
       shortDescription: "Quick kiosk essentials delivered around Roysambu.",
       description:
         "Useful for water, snacks, airtime, toiletries and quick essentials. Send your list and we coordinate confirmation before dispatch.",
@@ -179,7 +179,7 @@ export const mockData = {
       name: "Juice & Smoothies",
       status: "published",
       priceLabel: "menu pricing",
-      coverImage: "/public/assets/service-groceries.svg",
+      coverImage: "/assets/service-groceries.svg",
       shortDescription: "Fresh juice and smoothie delivery contacts nearby.",
       description:
         "Order fresh juice or smoothies from nearby vendors. Guest support helps confirm current options and delivery timing.",
@@ -198,7 +198,7 @@ export const mockData = {
       name: "Pizza Place",
       status: "published",
       priceLabel: "from KSh 600",
-      coverImage: "/public/assets/service-transfer.svg",
+      coverImage: "/assets/service-transfer.svg",
       shortDescription: "Pizza delivery contact for easy meals.",
       description:
         "Use the WhatsApp order button to ask for the latest pizza menu, delivery estimate and current offers.",
@@ -217,7 +217,7 @@ export const mockData = {
       name: "Liquor Store",
       status: "published",
       priceLabel: "menu pricing",
-      coverImage: "/public/assets/service-cleaning.svg",
+      coverImage: "/assets/service-cleaning.svg",
       shortDescription: "Nearby liquor store contact for guests.",
       description:
         "Request the current drinks list and delivery timing. Guests must confirm age and availability before delivery.",
@@ -236,7 +236,7 @@ export const mockData = {
       name: "Hair Drop Water",
       status: "published",
       priceLabel: "on request",
-      coverImage: "/public/assets/service-laundry.svg",
+      coverImage: "/assets/service-laundry.svg",
       shortDescription: "Beauty and grooming support contact.",
       description:
         "A guest support contact for hair, grooming and beauty-related arrangements around Roysambu.",
@@ -254,7 +254,7 @@ export const mockData = {
       name: "Laundry",
       status: "published",
       priceLabel: "from KSh 500",
-      coverImage: "/public/assets/service-laundry.svg",
+      coverImage: "/assets/service-laundry.svg",
       shortDescription: "Laundry pickup and return for longer stays.",
       description:
         "Send a laundry request on WhatsApp. We help coordinate wash, dry, fold and return timing.",
@@ -273,7 +273,7 @@ export const mockData = {
       name: "Break Hub Coffee",
       status: "published",
       priceLabel: "menu pricing",
-      coverImage: "/public/assets/services/coffee-shop-two.png",
+      coverImage: "/assets/services/coffee-shop-two.jpg",
       shortDescription: "Another nearby coffee and snack stop.",
       description:
         "Guests can request coffee, light bites or directions to the cafe. WhatsApp support can help coordinate pickup.",
@@ -291,7 +291,7 @@ export const mockData = {
       name: "Room Cleaning",
       status: "published",
       priceLabel: "from KSh 800",
-      coverImage: "/public/assets/service-cleaning.svg",
+      coverImage: "/assets/service-cleaning.svg",
       shortDescription: "A full refresh of the apartment during your stay.",
       description:
         "Fresh linens, bathroom reset, floor cleaning, trash removal and apartment refresh. Best booked the evening before.",
@@ -311,7 +311,7 @@ export const mockData = {
       name: "Airport Pickup",
       status: "published",
       priceLabel: "from KSh 3,500",
-      coverImage: "/public/assets/service-transfer.svg",
+      coverImage: "/assets/service-transfer.svg",
       shortDescription: "Reliable pickup from JKIA or Wilson Airport.",
       description:
         "Share your flight number and landing time. We help coordinate a direct pickup to ALKEY Homes in Roysambu.",

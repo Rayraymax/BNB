@@ -94,6 +94,7 @@ function renderFooter() {
   document.querySelector("[data-footer]").innerHTML = `
     <div class="footer-grid">
       <section>
+        <img class="footer-logo" src="/assets/brand/alkey-logo.png" alt="${esc(store.settings.name)}" width="72" height="49" />
         <h2>${esc(store.settings.name)}</h2>
         <p>${esc(store.settings.metaDescription)}</p>
       </section>
@@ -161,7 +162,7 @@ function renderHome() {
       <div class="hero-shade"></div>
       <div class="hero-content page-pad">
         <p class="eyebrow">Luxury serviced stays in Roysambu</p>
-        <h1>${esc(settings.tagline)}</h1>
+        <h1>${heroHeadline(settings.tagline)}</h1>
         <p>${esc(settings.about.split(". ").slice(0, 2).join(". "))}.</p>
         <div class="button-row">
           <a class="button light" href="/rooms" data-link>Explore rooms</a>
@@ -343,7 +344,7 @@ function renderServices() {
   });
 
   app.innerHTML = `
-    ${pageHero("Guest services", "Cleaning, groceries, transfers and extras without leaving WhatsApp.", "/assets/services/services.png")}
+    ${pageHero("Guest services", "Cleaning, groceries, transfers and extras without leaving WhatsApp.", "/assets/service-groceries.svg")}
     <section class="section page-pad">
       <div class="tabs" role="tablist">
         <button class="active" data-service-filter="all">All</button>
@@ -1300,6 +1301,20 @@ function esc(value) {
 
 function title(value) {
   return String(value || "").replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function heroHeadline(tagline) {
+  const words = tagline.split(/\s+/);
+  const idx = words.findIndex((w) => /elegance/i.test(w));
+  if (idx === -1) return esc(tagline);
+  const before = words.slice(0, idx).join(" ");
+  const word = words[idx];
+  const after = words.slice(idx + 1).join(" ");
+  return [
+    before ? `${esc(before)}<br />` : "",
+    `<em class="accent-italic">${esc(word)}</em>`,
+    after ? `<br />${esc(after)}` : ""
+  ].join("");
 }
 
 function iconGlyph(name) {

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Acacia Ridge app icon">
+  <rect width="512" height="512" rx="102" fill="#163426"/>
+  <circle cx="146" cy="155" r="25" fill="#d4922f"/>
+  <path d="M111 332c59-91 116-139 174-139 49 0 86 27 116 80 12 22 0 48-25 48H137c-19 0-32 18-26 11Z" fill="#f4f2ea"/>
+  <path d="M122 361h268" stroke="#d4922f" stroke-width="20" stroke-linecap="round"/>
+  <text x="256" y="425" text-anchor="middle" font-family="Georgia, serif" font-size="66" font-weight="700" fill="#f4f2ea">AR</text>
+</svg>
