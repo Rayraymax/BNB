@@ -8,9 +8,9 @@ const APP_SHELL = [
   "/src/lib/db.js",
   "/src/lib/seo.js",
   "/src/lib/whatsapp.js",
-  "/public/assets/hero-hillside.svg",
-  "/public/assets/room-garden.svg",
-  "/public/assets/room-ridge.svg"
+  "/assets/brand/alkey-logo.png",
+  "/assets/uploads/alkey-luxury-hero-reference.png",
+  "/assets/uploads/alkey-building-background.jpeg"
 ];
 
 self.addEventListener("install", (event) => {

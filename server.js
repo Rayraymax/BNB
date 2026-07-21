@@ -23,8 +23,27 @@ const mimeTypes = {
 
 function safePath(urlPath) {
   const decoded = decodeURIComponent(urlPath.split("?")[0]);
-  const candidate = normalize(join(root, decoded === "/" ? "index.html" : decoded));
-  return candidate.startsWith(root) ? candidate : join(root, "index.html");
+
+  // Serve files from the public folder
+  if (decoded.startsWith("/assets/") || decoded.startsWith("/icons/")) {
+    return normalize(join(root, "public", decoded));
+  }
+
+  // Serve service worker and manifest
+  if (
+    decoded === "/service-worker.js" ||
+    decoded === "/manifest.webmanifest"
+  ) {
+    return normalize(join(root, decoded.slice(1)));
+  }
+
+  // Serve source files
+  if (decoded.startsWith("/src/")) {
+    return normalize(join(root, decoded));
+  }
+
+  // SPA routes
+  return join(root, "index.html");
 }
 
 createServer(async (req, res) => {

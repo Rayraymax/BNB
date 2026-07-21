@@ -181,17 +181,6 @@ function renderHome() {
       </div>
     </section>
 
-    <section class="section page-pad story-band">
-      <div class="story-copy">
-        <p class="eyebrow">Our story</p>
-        <h2>Comfort, convenience and hospitality that feels personal.</h2>
-        <p>${esc(settings.story || settings.about)}</p>
-      </div>
-      <div class="story-stats">
-        ${(settings.stats || []).map((item) => `<article><strong>${esc(item.value)}</strong><span>${esc(item.label)}</span></article>`).join("")}
-      </div>
-    </section>
-
     <section class="section page-pad why-luxury">
       <div class="why-luxury-head">
         <p class="eyebrow">Why guests love staying with us</p>
@@ -234,6 +223,17 @@ function renderHome() {
       </div>
       <div class="service-grid">
         ${services.map(serviceCard).join("")}
+      </div>
+    </section>
+
+    <section class="section page-pad story-band">
+      <div class="story-copy">
+        <p class="eyebrow">Our story</p>
+        <h2>Comfort, convenience and hospitality that feels personal.</h2>
+        <p>${esc(settings.story || settings.about)}</p>
+      </div>
+      <div class="story-stats">
+        ${(settings.stats || []).map((item) => `<article><strong>${esc(item.value)}</strong><span>${esc(item.label)}</span></article>`).join("")}
       </div>
     </section>
 
@@ -343,7 +343,7 @@ function renderServices() {
   });
 
   app.innerHTML = `
-    ${pageHero("Guest services", "Cleaning, groceries, transfers and extras without leaving WhatsApp.", "/public/assets/service-groceries.svg")}
+    ${pageHero("Guest services", "Cleaning, groceries, transfers and extras without leaving WhatsApp.", "/assets/services/services.png")}
     <section class="section page-pad">
       <div class="tabs" role="tablist">
         <button class="active" data-service-filter="all">All</button>
@@ -1304,16 +1304,16 @@ function title(value) {
 
 function iconGlyph(name) {
   const icons = {
-    bed: "01",
-    shield: "02",
-    pin: "03",
-    key: "04",
-    sparkles: "05",
-    wifi: "06",
-    bell: "07",
-    message: "08"
+    bed: '<svg viewBox="0 0 24 24"><path d="M3 18v-7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v7"/><path d="M3 18v2M21 18v2"/><path d="M3 13h18"/><path d="M7 13V9a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v1"/></svg>',
+    shield: '<svg viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg>',
+    pin: '<svg viewBox="0 0 24 24"><path d="M12 22s7-6.5 7-12a7 7 0 1 0-14 0c0 5.5 7 12 7 12z"/><circle cx="12" cy="10" r="2.4"/></svg>',
+    key: '<svg viewBox="0 0 24 24"><circle cx="8" cy="14" r="4.2"/><path d="M11 11l9-9M17 5l3 3M14 8l2 2"/></svg>',
+    sparkles: '<svg viewBox="0 0 24 24"><path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6L12 3z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15z"/></svg>',
+    wifi: '<svg viewBox="0 0 24 24"><path d="M2 8.5a17 17 0 0 1 20 0"/><path d="M5.5 12.5a12 12 0 0 1 13 0"/><path d="M9 16.5a7 7 0 0 1 6 0"/><circle cx="12" cy="20" r="1"/></svg>',
+    bell: '<svg viewBox="0 0 24 24"><path d="M6 10a6 6 0 1 1 12 0c0 4 1.5 5.5 2 6H4c.5-.5 2-2 2-6z"/><path d="M10 19a2 2 0 0 0 4 0"/></svg>',
+    message: '<svg viewBox="0 0 24 24"><path d="M4 5h16v11H8l-4 4V5z"/><path d="M8 9h8M8 12h5"/></svg>'
   };
-  return icons[name] || "00";
+  return icons[name] || icons.sparkles;
 }
 
 function defaultWhyIcon(index) {

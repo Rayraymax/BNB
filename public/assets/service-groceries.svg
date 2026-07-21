@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="800" height="560" viewBox="0 0 800 560" role="img" aria-label="Grocery run service">
-  <rect width="800" height="560" fill="#f7f4ea"/>
-  <path d="M220 190h360l-45 230H265Z" fill="#ffffff" stroke="#163426" stroke-width="8" stroke-linejoin="round"/>
-  <path d="M293 190c11-70 202-70 214 0" fill="none" stroke="#d4922f" stroke-width="16" stroke-linecap="round"/>
-  <circle cx="320" cy="290" r="42" fill="#7ca38a"/>
-  <circle cx="408" cy="315" r="46" fill="#d4922f"/>
-  <path d="M481 260c46 18 72 54 78 105-53-1-92-25-116-72Z" fill="#557761"/>
-</svg>

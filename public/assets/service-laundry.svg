@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="800" height="560" viewBox="0 0 800 560" role="img" aria-label="Laundry service">
-  <rect width="800" height="560" fill="#eef4f2"/>
-  <rect x="196" y="82" width="408" height="398" rx="24" fill="#ffffff" stroke="#163426" stroke-width="8"/>
-  <rect x="238" y="128" width="324" height="64" rx="10" fill="#f4f2ea"/>
-  <circle cx="400" cy="322" r="110" fill="#d8e7da" stroke="#d4922f" stroke-width="10"/>
-  <path d="M317 318c42-46 92-47 166-2" fill="none" stroke="#163426" stroke-width="16" stroke-linecap="round"/>
-  <circle cx="526" cy="160" r="14" fill="#d4922f"/>
-</svg>
