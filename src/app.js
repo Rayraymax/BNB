@@ -987,6 +987,7 @@ async function handleRoomBooking(event) {
   }
 
   const message = roomBookingMessage({ room, settings: store.settings, ...values });
+  openWhatsapp(store.settings.whatsapp, message);
   await createInquiry({
     type: "room",
     roomId: room.id,
@@ -996,7 +997,6 @@ async function handleRoomBooking(event) {
     endDate: values.endDate,
     message
   });
-  openWhatsapp(store.settings.whatsapp, message);
 }
 
 async function handleServiceOrder(event) {
@@ -1009,18 +1009,19 @@ async function handleServiceOrder(event) {
     price: input.dataset.price
   }));
   const message = serviceOrderMessage({ service, settings: store.settings, selectedItems, ...values });
-  await createInquiry({
+  // Open WhatsApp immediately
+openWhatsapp(service.whatsapp || store.settings.whatsapp, message);
+
+// Save the inquiry in the background
+createInquiry({
     type: "service",
     serviceId: service.id,
     guestName: values.guestName,
     message
-  });
-  openWhatsapp(service.whatsapp || store.settings.whatsapp, message);
-}
+}).catch(console.error);
 
 function openWhatsapp(number, message) {
-  window.open(whatsappUrl(number, message), "_blank", "noopener,noreferrer");
-  showToast("Opening WhatsApp with your pre-filled message.");
+  window.location.href = whatsappUrl(number, message);
 }
 
 function roomCard(room) {
@@ -1353,3 +1354,4 @@ init().catch((error) => {
   console.error(error);
   app.innerHTML = `<section class="section page-pad"><h1>Something went wrong</h1><p>${esc(error.message)}</p></section>`;
 });
+}
