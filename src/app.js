@@ -1019,7 +1019,7 @@ createInquiry({
     guestName: values.guestName,
     message
 }).catch(console.error);
-
+}
 function openWhatsapp(number, message) {
   window.location.href = whatsappUrl(number, message);
 }
@@ -1354,4 +1354,3 @@ init().catch((error) => {
   console.error(error);
   app.innerHTML = `<section class="section page-pad"><h1>Something went wrong</h1><p>${esc(error.message)}</p></section>`;
 });
-}
