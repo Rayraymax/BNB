@@ -277,6 +277,88 @@ p {
   height: 100%;
 }
 
+.hero {
+  grid-template-columns: minmax(0, 1.08fr) minmax(20rem, 0.92fr);
+  min-height: min(82vh, 780px);
+  align-items: stretch;
+  background: var(--ink);
+}
+
+.hero-copy {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  color: var(--white);
+  padding-top: 6rem;
+  padding-bottom: 4rem;
+  background: linear-gradient(115deg, rgba(12, 10, 9, 0.98), rgba(12, 10, 9, 0.88));
+}
+
+.hero-copy > p:not(.eyebrow) {
+  width: min(610px, 100%);
+  margin-top: 1.4rem;
+  font-size: 1.15rem;
+  color: #eef5eb;
+}
+
+.hero-copy h1 {
+  max-width: 760px;
+}
+
+.hero-visual {
+  position: relative;
+  min-height: 30rem;
+  overflow: hidden;
+  background: #0b0908;
+}
+
+.hero-visual::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(12, 10, 9, 0.35), transparent 42%), linear-gradient(0deg, rgba(12, 10, 9, 0.48), transparent 45%);
+}
+
+.hero-visual .hero-media {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hero-visual-card {
+  position: absolute;
+  z-index: 2;
+  right: 1.3rem;
+  bottom: 1.3rem;
+  display: grid;
+  gap: 0.25rem;
+  max-width: 18rem;
+  padding: 0.9rem 1rem;
+  background: rgba(12, 10, 9, 0.84);
+  color: var(--white);
+  border-left: 2px solid var(--gold);
+}
+
+.hero-visual-card span {
+  color: #d6cdc2;
+  font-size: 0.82rem;
+}
+
+.button.outline {
+  background: transparent;
+  border-color: var(--gold);
+  color: var(--gold-tint);
+}
+
+.button.outline:hover {
+  background: var(--gold);
+  color: var(--ink);
+}
+
 .hero-media {
   object-fit: cover;
   animation: hero-zoom 22s ease-in-out infinite alternate;
@@ -423,6 +505,24 @@ p {
   color: #eef5eb;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
+
+.availability-legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-left: 0.6rem;
+  color: #eef5eb;
+  font-size: 0.8rem;
+}
+
+.availability-legend i {
+  width: 0.58rem;
+  height: 0.58rem;
+  border-radius: 50%;
+}
+
+.availability-legend .open { background: var(--gold); }
+.availability-legend .full { background: #738176; }
 
 .section {
   padding-top: clamp(3.5rem, 7vw, 7rem);
@@ -961,6 +1061,41 @@ textarea {
   font-size: 0.84rem;
 }
 
+.mini-calendar .calendar-day {
+  width: 100%;
+  min-height: 2.2rem;
+  border: 0;
+  padding: 0;
+  background: var(--sage);
+  color: var(--green);
+  cursor: pointer;
+}
+
+.mini-calendar .calendar-day:hover:not(:disabled),
+.mini-calendar .calendar-day:focus-visible:not(:disabled) {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+
+.mini-calendar .calendar-day.blocked {
+  background: #8f2f1b;
+  color: var(--white);
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
+.mini-calendar .calendar-day.past {
+  background: #eee9df;
+  color: #aaa095;
+  cursor: not-allowed;
+}
+
+.calendar-help {
+  margin-top: 0.75rem;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
 .mini-calendar .day-head {
   background: transparent;
   min-height: 1.2rem;
@@ -996,6 +1131,96 @@ textarea {
 .price-list input {
   width: 1.2rem;
   min-height: 1.2rem;
+}
+
+.field-help {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 500;
+}
+
+.total-preview {
+  border: 1px solid var(--gold-tint);
+  background: #fff8ed;
+  padding: 0.75rem;
+  color: var(--gold-deep);
+  font-size: 0.86rem;
+}
+
+.total-preview.is-warning {
+  border-color: #dcb5aa;
+  background: #fff2ef;
+  color: #8f2f1b;
+}
+
+.policy-note {
+  display: grid;
+  gap: 0.4rem;
+  margin-top: 1.2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+  font-size: 0.86rem;
+}
+
+.policy-note p,
+.policy-note small {
+  color: var(--muted);
+}
+
+.policy-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 3rem;
+}
+
+.policy-grid article {
+  padding: 1.2rem;
+  background: var(--white);
+  border: 1px solid var(--line);
+}
+
+.policy-grid p,
+.policy-grid li {
+  margin-top: 0.65rem;
+  color: var(--muted);
+}
+
+.policy-grid ul {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.contact-form-section {
+  background: var(--white);
+}
+
+.contact-form {
+  max-width: 60rem;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.contact-form .full {
+  grid-column: 1 / -1;
+}
+
+.contact-note {
+  margin-bottom: 1rem;
+}
+
+.inquiry-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.inquiry-head select {
+  width: auto;
+  min-height: 2.2rem;
+  padding: 0.35rem 0.55rem;
 }
 
 .tabs {
@@ -1333,6 +1558,37 @@ th {
   color: var(--blue);
 }
 
+.media-assignment-list {
+  display: grid;
+  gap: 0.8rem;
+  margin-top: 1rem;
+}
+
+.media-assignment-list article {
+  display: grid;
+  grid-template-columns: 4rem minmax(0, 1fr) auto;
+  gap: 0.9rem;
+  align-items: center;
+  border: 1px solid var(--line);
+  background: #fff;
+  padding: 0.7rem;
+}
+
+.media-assignment-list img {
+  width: 4rem;
+  height: 3.2rem;
+  object-fit: cover;
+  background: var(--sage);
+}
+
+.media-assignment-list code {
+  display: block;
+  margin-top: 0.25rem;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+  font-size: 0.75rem;
+}
+
 .site-footer {
   background: #0c0a09;
   color: var(--white);
@@ -1468,6 +1724,7 @@ th {
   }
 
   .split,
+  .hero,
   .story-band,
   .page-hero,
   .detail-hero,
@@ -1486,8 +1743,17 @@ th {
   .service-grid,
   .testimonial-grid,
   .stat-grid,
-  .why-luxury-grid {
+  .why-luxury-grid,
+  .policy-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .hero-copy {
+    min-height: 38rem;
+  }
+
+  .hero-visual {
+    min-height: 24rem;
   }
 
   .hero-booking {
@@ -1498,6 +1764,14 @@ th {
     grid-column: 1 / -1;
     min-height: 3.2rem;
   }
+
+  .contact-form {
+    grid-template-columns: 1fr;
+  }
+
+  .contact-form .full {
+    grid-column: auto;
+  }
 }
 
 @media (max-width: 720px) {
@@ -1507,6 +1781,15 @@ th {
 
   .hero {
     min-height: 86vh;
+  }
+
+  .hero-copy {
+    min-height: auto;
+    padding-top: 5rem;
+  }
+
+  .hero-visual {
+    min-height: 20rem;
   }
 
   .hero-content {
@@ -1527,6 +1810,7 @@ th {
   .footer-grid,
   .stat-grid,
   .story-stats,
+  .policy-grid,
   .admin-form,
   .admin-form.compact,
   .hero-booking {

@@ -39,16 +39,19 @@ C:\Users\USER\Desktop\BNB\supabase\schema.sql
 5. Paste it into Supabase SQL Editor.
 6. Click `Run`.
 
-This creates:
+This creates or safely upgrades:
 
 - `site_settings`
 - `rooms`
 - `services`
 - `bookings`
 - `inquiries`
+- `testimonials`
 - `user_roles`
 - public media buckets: `site-media`, `room-images`, `service-images`
 - a database rule that prevents overlapping confirmed bookings for the same room
+
+For an existing live project, run `schema.sql` before deploying the new frontend. The migration adds policy/payment/location fields and the testimonials table without dropping current rooms, bookings or media. Do not run `seed.sql` against live content unless you intentionally want to overwrite the demo seed rows.
 
 ## 3. Add Demo Content
 
@@ -64,7 +67,7 @@ C:\Users\USER\Desktop\BNB\supabase\seed.sql
 3. Paste it into SQL Editor.
 4. Run it.
 
-This adds ALKEY Homes settings, Room 701, Room 739, mock services, and sample blocked dates.
+For a new project, this adds ALKEY Homes settings, Room 701, Room 739, services, dated sample reviews, and sample blocked dates. Existing production content should be edited from the dashboard instead.
 
 ## 4. Create The Owner Login
 
@@ -82,6 +85,7 @@ on conflict do nothing;
 ```
 
 Only users with this admin role can add, edit or delete rooms, services, bookings and media.
+The owner dashboard also manages testimonials and inquiry status/deletion, plus house rules, cancellation terms, direct-payment instructions, accepted payment methods, taxes/fees notes, exact landmarks and check-in notes.
 
 ## 5. Connect The App To Supabase
 
@@ -170,6 +174,7 @@ Use the dashboard, not code, once Supabase is connected.
 7. Upload the file.
 
 The dashboard uploads to Supabase Storage and applies the URL automatically when a target is selected. It also shows the URL so you can paste it manually if needed.
+The Media page also lists assigned images and lets the owner remove a cover/gallery assignment or replace it with a new upload.
 
 Recommended media sizes:
 
@@ -234,6 +239,18 @@ Add a confirmed block with:
 - end date
 
 The public room page shows booked days on the calendar. The booking form also refuses overlapping dates. Supabase adds a second layer of protection with the `no_overlapping_confirmed_room_bookings` database constraint, so one room cannot be double-booked for the same confirmed dates.
+
+Guests now see booked nights as filled red, disabled calendar buttons. The date inputs are limited to today/future dates, and the booking panel shows an estimated nightly total before the WhatsApp handoff.
+
+## Direct Payment Configuration
+
+On `/admin/site`, set:
+
+- accepted methods such as M-Pesa, card, bank transfer or cash at check-in
+- the direct-payment note shown beside the booking form
+- the tax/fee note and cancellation policy
+
+In Booking.com, choose the payment options available for your property and region that let guests pay the property directly. Booking.com may still require partner verification or payout details even when you primarily collect payment yourself. Confirm the final Booking.com payment setup in the Extranet before publishing.
 
 ## 12. Booking.com Readiness
 

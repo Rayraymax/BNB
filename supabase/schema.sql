@@ -29,6 +29,7 @@ create table if not exists public.site_settings (
   id text primary key default 'site',
   name text not null,
   short_name text,
+  logo_image text,
   tagline text,
   meta_description text,
   about text,
@@ -39,9 +40,18 @@ create table if not exists public.site_settings (
   phone text,
   email text,
   address text,
+  landmark text,
+  property_type text,
   map_embed text,
   check_in text,
   check_out text,
+  check_in_notes text,
+  house_rules jsonb not null default '[]'::jsonb,
+  cancellation_policy text,
+  children_policy text,
+  payment_methods jsonb not null default '[]'::jsonb,
+  payment_note text,
+  tax_note text,
   socials jsonb not null default '{}'::jsonb,
   why_choose jsonb not null default '[]'::jsonb,
   stats jsonb not null default '[]'::jsonb,
@@ -132,8 +142,29 @@ create table if not exists public.inquiries (
   created_at timestamptz not null default now()
 );
 
+create table if not exists public.testimonials (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  quote text not null,
+  source text not null default 'Guest review',
+  review_date date,
+  status text not null default 'published' check (status in ('published', 'draft')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 alter table public.site_settings add column if not exists story text;
+alter table public.site_settings add column if not exists logo_image text;
 alter table public.site_settings add column if not exists stats jsonb not null default '[]'::jsonb;
+alter table public.site_settings add column if not exists landmark text;
+alter table public.site_settings add column if not exists property_type text;
+alter table public.site_settings add column if not exists check_in_notes text;
+alter table public.site_settings add column if not exists house_rules jsonb not null default '[]'::jsonb;
+alter table public.site_settings add column if not exists cancellation_policy text;
+alter table public.site_settings add column if not exists children_policy text;
+alter table public.site_settings add column if not exists payment_methods jsonb not null default '[]'::jsonb;
+alter table public.site_settings add column if not exists payment_note text;
+alter table public.site_settings add column if not exists tax_note text;
 alter table public.rooms add column if not exists cover_video text;
 
 alter table public.user_roles enable row level security;
@@ -142,6 +173,7 @@ alter table public.rooms enable row level security;
 alter table public.services enable row level security;
 alter table public.bookings enable row level security;
 alter table public.inquiries enable row level security;
+alter table public.testimonials enable row level security;
 
 drop policy if exists "Admins can read roles" on public.user_roles;
 create policy "Admins can read roles"
@@ -216,6 +248,25 @@ using (public.has_role('admin'));
 drop policy if exists "Admins can update inquiries" on public.inquiries;
 create policy "Admins can update inquiries"
 on public.inquiries for update
+to authenticated
+using (public.has_role('admin'))
+with check (public.has_role('admin'));
+
+drop policy if exists "Admins can delete inquiries" on public.inquiries;
+create policy "Admins can delete inquiries"
+on public.inquiries for delete
+to authenticated
+using (public.has_role('admin'));
+
+drop policy if exists "Public can read published testimonials" on public.testimonials;
+create policy "Public can read published testimonials"
+on public.testimonials for select
+to anon, authenticated
+using (status = 'published' or public.has_role('admin'));
+
+drop policy if exists "Admins can manage testimonials" on public.testimonials;
+create policy "Admins can manage testimonials"
+on public.testimonials for all
 to authenticated
 using (public.has_role('admin'))
 with check (public.has_role('admin'));

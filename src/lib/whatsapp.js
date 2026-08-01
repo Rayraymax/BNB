@@ -7,12 +7,13 @@ export function whatsappUrl(number, message) {
   return `https://wa.me/${clean}?text=${encodeURIComponent(message)}`;
 }
 
-export function roomBookingMessage({ room, settings, startDate, endDate, guests, guestName, note }) {
+export function roomBookingMessage({ room, settings, startDate, endDate, guests, guestName, note, totalCost }) {
   return [
     `Hello ${settings.shortName || settings.name},`,
     `I would like to book ${room.name}.`,
     startDate && endDate ? `Dates: ${startDate} to ${endDate}` : "Dates: I will confirm.",
     guests ? `Guests: ${guests}` : "",
+    totalCost ? `Estimated total: KSh ${Number(totalCost).toLocaleString()}` : "",
     guestName ? `Name: ${guestName}` : "",
     note ? `Note: ${note}` : "",
     "Please confirm availability and total price."

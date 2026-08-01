@@ -10,13 +10,36 @@
     />
     <meta name="theme-color" content="#0d0d0c" />
     <meta name="robots" content="index, follow" />
-    <link rel="canonical" href="/" />
+    <meta name="author" content="ALKEY Homes" />
+    <meta property="og:title" content="ALKEY Homes | Roysambu Serviced Apartments" />
+    <meta property="og:description" content="Book ALKEY Homes serviced apartments in Roysambu with direct WhatsApp support, visible availability and guest services." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://alkeyhomes.netlify.app/" />
+    <meta property="og:image" content="https://alkeyhomes.netlify.app/assets/uploads/alkey-building-background.jpeg" />
+    <meta property="og:site_name" content="ALKEY Homes" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="ALKEY Homes | Roysambu Serviced Apartments" />
+    <meta name="twitter:description" content="Serviced apartments in Roysambu, Nairobi with direct booking and responsive guest support." />
+    <meta name="twitter:image" content="https://alkeyhomes.netlify.app/assets/uploads/alkey-building-background.jpeg" />
+    <link rel="canonical" href="https://alkeyhomes.netlify.app/" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
     <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512.png" />
     <link rel="apple-touch-icon" href="/icons/icon-192.png" />
     <link rel="stylesheet" href="/src/styles.css" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "LodgingBusiness",
+        "name": "ALKEY Homes",
+        "description": "Serviced apartments in Roysambu, Nairobi with direct booking, self check-in and guest support.",
+        "image": "https://alkeyhomes.netlify.app/assets/uploads/alkey-building-background.jpeg",
+        "url": "https://alkeyhomes.netlify.app/",
+        "telephone": "+254704330604",
+        "address": { "@type": "PostalAddress", "addressLocality": "Nairobi", "addressCountry": "KE" }
+      }
+    </script>
     <script type="module" src="/src/app.js"></script>
   </head>
   <body>
@@ -24,7 +47,7 @@
     <div id="toast" class="toast" aria-live="polite"></div>
     <header class="site-header" id="site-header">
       <a class="brand" href="/" data-link aria-label="Home">
-        <img class="brand-logo" src="/assets/brand/alkey-logo.png" alt="ALKEY Homes" width="111" height="75" />
+        <img class="brand-logo" data-brand-logo src="/assets/brand/alkey-logo.png" alt="ALKEY Homes" width="111" height="75" />
         <span class="sr-only" data-brand-name>ALKEY</span>
       </a>
       <button class="nav-toggle" type="button" aria-label="Open menu" data-nav-toggle>

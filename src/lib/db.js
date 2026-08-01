@@ -17,7 +17,39 @@ function localData() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(initial));
     return initial;
   }
-  return JSON.parse(saved);
+  const data = JSON.parse(saved);
+  data.settings = { ...clone(mockData.settings), ...(data.settings || {}) };
+  data.testimonials = (data.testimonials || clone(mockData.testimonials)).map((item, index) => ({
+    ...item,
+    id: item.id || `testimonial-local-${index + 1}`
+  }));
+  const fixAssetPath = (value) => String(value || "").replaceAll("/public/assets/", "/assets/");
+  data.settings.coverImage = fixAssetPath(data.settings.coverImage);
+  data.settings.coverVideo = fixAssetPath(data.settings.coverVideo);
+  data.rooms = (data.rooms || []).map((room) => ({
+    ...room,
+    coverImage: fixAssetPath(room.coverImage),
+    coverVideo: fixAssetPath(room.coverVideo),
+    gallery: (room.gallery || []).map(fixAssetPath)
+  }));
+  data.services = (data.services || []).map((service) => {
+    const next = { ...service, coverImage: fixAssetPath(service.coverImage) };
+    if (next.slug === "hair-drop-water" && next.name === "Hair Drop Water") {
+      next.name = "Heri Drop Water";
+      next.category = "groceries";
+      next.shortDescription = "Bottled drinking water delivered to your apartment.";
+      next.description = "Order bottled drinking water for your stay and we will help confirm available sizes, price and delivery timing to the apartment.";
+      next.contactName = "Heri Drop Water";
+      next.items = [{ name: "Water delivery", price: "on request" }];
+    }
+    if (next.slug === "coffee-shop-two") {
+      next.shortDescription = "Coffee, breakfast bites and snacks from a nearby cafe.";
+      next.description = "Order coffee, breakfast bites or snacks from Break Hub Coffee. Guest support can confirm the current menu and coordinate pickup or delivery.";
+    }
+    return next;
+  });
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  return data;
 }
 
 function saveLocal(data) {
@@ -42,12 +74,22 @@ function normalizeSettings(row) {
     story: row.story || "",
     stats: row.stats || [],
     shortName: row.short_name || row.shortName,
+    logoImage: row.logo_image || row.logoImage || "/assets/brand/alkey-logo.png",
     coverImage: row.cover_image || row.coverImage,
     coverVideo: row.cover_video || row.coverVideo,
     metaDescription: row.meta_description || row.metaDescription,
+    landmark: row.landmark || "",
+    propertyType: row.property_type || row.propertyType || "Serviced apartment",
     mapEmbed: row.map_embed || row.mapEmbed,
     checkIn: row.check_in || row.checkIn,
-    checkOut: row.check_out || row.checkOut
+    checkOut: row.check_out || row.checkOut,
+    checkInNotes: row.check_in_notes || row.checkInNotes || "",
+    houseRules: row.house_rules || row.houseRules || [],
+    cancellationPolicy: row.cancellation_policy || row.cancellationPolicy || "",
+    childrenPolicy: row.children_policy || row.childrenPolicy || "",
+    paymentMethods: row.payment_methods || row.paymentMethods || [],
+    paymentNote: row.payment_note || row.paymentNote || "",
+    taxNote: row.tax_note || row.taxNote || ""
   };
 }
 
@@ -56,6 +98,7 @@ function toSettingsRow(settings) {
     id: "site",
     name: settings.name,
     short_name: settings.shortName,
+    logo_image: settings.logoImage,
     tagline: settings.tagline,
     meta_description: settings.metaDescription,
     about: settings.about,
@@ -66,9 +109,18 @@ function toSettingsRow(settings) {
     phone: settings.phone,
     email: settings.email,
     address: settings.address,
+    landmark: settings.landmark,
+    property_type: settings.propertyType,
     map_embed: settings.mapEmbed,
     check_in: settings.checkIn,
     check_out: settings.checkOut,
+    check_in_notes: settings.checkInNotes,
+    house_rules: settings.houseRules || [],
+    cancellation_policy: settings.cancellationPolicy,
+    children_policy: settings.childrenPolicy,
+    payment_methods: settings.paymentMethods || [],
+    payment_note: settings.paymentNote,
+    tax_note: settings.taxNote,
     socials: settings.socials || {},
     why_choose: settings.whyChoose || [],
     stats: settings.stats || []
@@ -143,12 +195,13 @@ export async function getContent() {
   const client = await supabase();
   if (!client) return localData();
 
-  const [settingsRes, roomsRes, servicesRes, bookingsRes, inquiriesRes] = await Promise.all([
+  const [settingsRes, roomsRes, servicesRes, bookingsRes, inquiriesRes, testimonialsRes] = await Promise.all([
     client.from("site_settings").select("*").eq("id", "site").maybeSingle(),
     client.from("rooms").select("*").order("name"),
     client.from("services").select("*").order("name"),
     client.from("bookings").select("*").order("start_date"),
-    client.from("inquiries").select("*").order("created_at", { ascending: false })
+    client.from("inquiries").select("*").order("created_at", { ascending: false }),
+    client.from("testimonials").select("*").order("review_date", { ascending: false })
   ]);
 
   for (const result of [settingsRes, roomsRes, servicesRes, bookingsRes, inquiriesRes]) {
@@ -167,7 +220,10 @@ export async function getContent() {
       endDate: booking.end_date
     })),
     inquiries: inquiriesRes.data,
-    testimonials: clone(mockData.testimonials)
+    testimonials: testimonialsRes.error ? clone(mockData.testimonials) : testimonialsRes.data?.map((item) => ({
+      ...item,
+      reviewDate: item.review_date
+    })) || clone(mockData.testimonials)
   };
 }
 
@@ -298,6 +354,69 @@ export async function createInquiry(inquiry) {
   }).select().single();
   if (error) throw error;
   return data;
+}
+
+export async function updateInquiry(id, status) {
+  const client = await supabase();
+  if (!client) {
+    const data = localData();
+    const item = data.inquiries.find((entry) => entry.id === id);
+    if (item) item.status = status;
+    saveLocal(data);
+    return item;
+  }
+  const { data, error } = await client.from("inquiries").update({ status }).eq("id", id).select().single();
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteInquiry(id) {
+  const client = await supabase();
+  if (!client) {
+    const data = localData();
+    data.inquiries = data.inquiries.filter((item) => item.id !== id);
+    saveLocal(data);
+    return;
+  }
+  const { error } = await client.from("inquiries").delete().eq("id", id);
+  if (error) throw error;
+}
+
+export async function saveTestimonial(testimonial) {
+  const client = await supabase();
+  if (!client) {
+    const data = localData();
+    const id = testimonial.id || crypto.randomUUID();
+    const next = { ...testimonial, id, status: testimonial.status || "published" };
+    const index = data.testimonials.findIndex((item) => item.id === id);
+    if (index >= 0) data.testimonials[index] = next;
+    else data.testimonials.unshift(next);
+    saveLocal(data);
+    return next;
+  }
+  const row = {
+    id: testimonial.id || crypto.randomUUID(),
+    name: testimonial.name,
+    quote: testimonial.quote,
+    source: testimonial.source || "Guest review",
+    review_date: testimonial.reviewDate || null,
+    status: testimonial.status || "published"
+  };
+  const { data, error } = await client.from("testimonials").upsert(row).select().single();
+  if (error) throw error;
+  return { ...data, reviewDate: data.review_date };
+}
+
+export async function deleteTestimonial(id) {
+  const client = await supabase();
+  if (!client) {
+    const data = localData();
+    data.testimonials = data.testimonials.filter((item) => item.id !== id);
+    saveLocal(data);
+    return;
+  }
+  const { error } = await client.from("testimonials").delete().eq("id", id);
+  if (error) throw error;
 }
 
 export async function saveBooking(booking) {

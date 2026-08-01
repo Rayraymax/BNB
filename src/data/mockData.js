@@ -3,6 +3,7 @@ export const mockData = {
     id: "site",
     name: "ALKEY Homes",
     shortName: "ALKEY",
+    logoImage: "/assets/brand/alkey-logo.png",
     tagline: "Experience Elegance & Royalty",
     metaDescription:
       "ALKEY Homes offers premium serviced apartments in Roysambu with WhatsApp booking, fast Wi-Fi, self check-in, housekeeping, groceries, laundry and local guest support.",
@@ -16,9 +17,23 @@ export const mockData = {
     phone: "+254 704 330604",
     email: "alkeyhomess@gmail.com",
     address: "Roysambu, Nairobi",
+    landmark: "Near Thika Road Mall and TRM Drive, Roysambu, Nairobi",
+    propertyType: "Serviced apartment",
     mapEmbed: "https://www.google.com/maps?q=Roysambu%20Nairobi&output=embed",
     checkIn: "Flexible self check-in",
     checkOut: "10:00 AM",
+    checkInNotes: "Check-in from 2:00 PM. Self check-in instructions are shared after confirmation.",
+    houseRules: [
+      "No smoking inside the apartment",
+      "No parties or events",
+      "Quiet hours from 10:00 PM to 7:00 AM",
+      "Only registered guests may stay overnight"
+    ],
+    cancellationPolicy: "Free cancellation up to 48 hours before check-in. Cancellations within 48 hours may be charged one night.",
+    childrenPolicy: "Children are welcome when the selected room capacity allows. Contact the owner before adding an extra bed or cot.",
+    paymentMethods: ["M-Pesa", "Visa / Mastercard", "Bank transfer", "Cash at check-in"],
+    paymentNote: "Guests pay the owner directly. Confirm the final total and payment instructions on WhatsApp before arrival.",
+    taxNote: "Rates are shown in Kenyan shillings. Confirm applicable taxes or fees with the owner before payment.",
     socials: {
       instagram: "https://instagram.com/",
       facebook: "https://facebook.com/"
@@ -81,7 +96,7 @@ export const mockData = {
       price: 4500,
       priceLabel: "KSh 4,500/night",
       capacity: 2,
-      size: "1 bedroom apartment",
+      size: "1-bedroom apartment",
       beds: "Queen bed",
       coverImage: "/assets/uploads/alkey-building-background.jpeg",
       coverVideo: "",
@@ -101,13 +116,13 @@ export const mockData = {
       price: 5000,
       priceLabel: "KSh 5,000/night",
       capacity: 2,
-      size: "premium apartment",
+      size: "1-bedroom premium apartment",
       beds: "Queen bed",
       coverImage: "/assets/uploads/alkey-building-background.jpeg",
       coverVideo: "",
       gallery: ["/assets/uploads/alkey-building-background.jpeg", "/assets/room-ridge.svg"],
       description:
-        "A premium Roysambu apartment with a polished, comfortable feel for guests who want privacy, convenience and responsive support throughout the stay.",
+        "Our premium Roysambu apartment for guests who want extra space, a refined finish and a calm base for longer or more private stays. Expect a generous living area, dedicated work corner, fast Wi-Fi and responsive support throughout the stay.",
       amenities: ["Queen bed", "Smart TV", "Fast Wi-Fi", "Kitchen essentials", "Self check-in", "Guest services", "Secure building"],
       seoTitle: "Room 739 at ALKEY Homes Roysambu",
       seoDescription:
@@ -232,19 +247,19 @@ export const mockData = {
     {
       id: "svc-hair",
       slug: "hair-drop-water",
-      category: "services",
-      name: "Hair Drop Water",
+      category: "groceries",
+      name: "Heri Drop Water",
       status: "published",
       priceLabel: "on request",
       coverImage: "/assets/service-laundry.svg",
-      shortDescription: "Beauty and grooming support contact.",
+      shortDescription: "Bottled drinking water delivered to your apartment.",
       description:
-        "A guest support contact for hair, grooming and beauty-related arrangements around Roysambu.",
-      hours: "By appointment",
-      contactName: "Beauty contact",
+        "Order bottled drinking water for your stay and we will help confirm available sizes, price and delivery timing to the apartment.",
+      hours: "Daily, subject to delivery availability",
+      contactName: "Heri Drop Water",
       whatsapp: "254745680122",
       items: [
-        { name: "Hair appointment support", price: "on request" }
+        { name: "Water delivery", price: "on request" }
       ]
     },
     {
@@ -274,9 +289,9 @@ export const mockData = {
       status: "published",
       priceLabel: "menu pricing",
       coverImage: "/assets/services/coffee-shop-two.jpg",
-      shortDescription: "Another nearby coffee and snack stop.",
+      shortDescription: "Coffee, breakfast bites and snacks from a nearby cafe.",
       description:
-        "Guests can request coffee, light bites or directions to the cafe. WhatsApp support can help coordinate pickup.",
+        "Order coffee, breakfast bites or snacks from Break Hub Coffee. Guest support can confirm the current menu and coordinate pickup or delivery.",
       hours: "Daily",
       contactName: "Break Hub",
       whatsapp: "254715684262",
@@ -346,15 +361,24 @@ export const mockData = {
   ],
   testimonials: [
     {
+      id: "testimonial-mercy",
       name: "Mercy, Nairobi",
+      source: "Guest review",
+      date: "2026-06-14",
       quote: "Self check-in was smooth, the apartment was spotless and the host replied quickly on WhatsApp."
     },
     {
+      id: "testimonial-brian",
       name: "Brian, Eldoret",
+      source: "Guest review",
+      date: "2026-05-28",
       quote: "Good location in Roysambu, fast Wi-Fi and easy access to food deliveries. I would book again."
     },
     {
+      id: "testimonial-amina",
       name: "Amina, Mombasa",
+      source: "Guest review",
+      date: "2026-04-19",
       quote: "The services were convenient. Laundry and groceries were handled without me leaving the apartment."
     }
   ],

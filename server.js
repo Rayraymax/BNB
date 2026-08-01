@@ -1,5 +1,5 @@
 import { createServer } from "node:http";
-import { createReadStream, existsSync, statSync } from "node:fs";
+import { createReadStream, existsSync, readFileSync, statSync } from "node:fs";
 import { extname, join, normalize, sep } from "node:path";
 
 const root = process.cwd();
@@ -49,6 +49,42 @@ function isFile(path) {
   return path && existsSync(path) && statSync(path).isFile();
 }
 
+function htmlEscape(value) {
+  return String(value || "").replaceAll("&", "&amp;").replaceAll("\"", "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+}
+
+function routeMeta(pathname) {
+  const base = "https://alkeyhomes.netlify.app";
+  const routes = {
+    "/": ["ALKEY Homes | Roysambu Serviced Apartments", "Book ALKEY Homes serviced apartments in Roysambu with direct WhatsApp support, visible availability and guest services."],
+    "/rooms": ["Rooms | ALKEY Homes", "Compare ALKEY Homes serviced apartments in Roysambu and check dates before booking directly."],
+    "/services": ["Guest Services | ALKEY Homes", "Order laundry, cleaning, groceries, airport transfers and guest services around Roysambu."],
+    "/about": ["About | ALKEY Homes", "Meet the hosts and learn about ALKEY Homes serviced stays in Roysambu, Nairobi."],
+    "/contact": ["Contact | ALKEY Homes", "Contact ALKEY Homes for directions, booking questions and guest support."],
+    "/auth": ["Owner login | ALKEY Homes", "Owner management login for ALKEY Homes rooms, bookings, content and media."]
+  };
+  const [title, description] = routes[pathname] || (pathname.startsWith("/rooms/")
+    ? ["Room availability | ALKEY Homes", "View room photos, amenities, availability and direct booking details at ALKEY Homes."]
+    : pathname.startsWith("/services/")
+      ? ["Guest service | ALKEY Homes", "View guest service details, prices and WhatsApp ordering information at ALKEY Homes."]
+      : routes["/"]);
+  const url = `${base}${pathname === "/" ? "/" : pathname}`;
+  return { title, description, url };
+}
+
+function renderShell(pathname) {
+  const meta = routeMeta(pathname);
+  return readFileSync(join(root, "index.html"), "utf8")
+    .replace(/<title>[^<]*<\/title>/, `<title>${htmlEscape(meta.title)}</title>`)
+    .replace(/(<meta\s+name="description"\s+content=")[^"]*("\s*\/>)/, `$1${htmlEscape(meta.description)}$2`)
+    .replace(/(<meta\s+property="og:title"\s+content=")[^"]*("\s*\/>)/, `$1${htmlEscape(meta.title)}$2`)
+    .replace(/(<meta\s+property="og:description"\s+content=")[^"]*("\s*\/>)/, `$1${htmlEscape(meta.description)}$2`)
+    .replace(/(<meta\s+property="og:url"\s+content=")[^"]*("\s*\/>)/, `$1${htmlEscape(meta.url)}$2`)
+    .replace(/(<meta\s+name="twitter:title"\s+content=")[^"]*("\s*\/>)/, `$1${htmlEscape(meta.title)}$2`)
+    .replace(/(<meta\s+name="twitter:description"\s+content=")[^"]*("\s*\/>)/, `$1${htmlEscape(meta.description)}$2`)
+    .replace(/(<link\s+rel="canonical"\s+href=")[^"]*("\s*\/>)/, `$1${htmlEscape(meta.url)}$2`);
+}
+
 createServer((req, res) => {
   const requested = resolveWithinRoot(req.url || "/");
   const looksLikeAsset = /\.[a-zA-Z0-9]+$/.test((req.url || "").split("?")[0]);
@@ -77,6 +113,13 @@ createServer((req, res) => {
     // Client-side route (e.g. /rooms, /services/laundry) - hand off to the
     // SPA shell so app.js's router can take over.
     filePath = join(root, "index.html");
+  }
+
+  if (filePath === join(root, "index.html") && !looksLikeAsset && req.method !== "HEAD") {
+    const html = renderShell(new URL(req.url || "/", "http://localhost").pathname);
+    res.writeHead(200, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" });
+    res.end(html);
+    return;
   }
 
   const ext = extname(filePath);

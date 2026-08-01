@@ -27,7 +27,12 @@ export function setSeo({ title, description, image = defaultImage, canonical = l
   upsertMeta('meta[property="og:description"]', ["property", "og:description"], null, description);
   upsertMeta('meta[property="og:image"]', ["property", "og:image"], null, absoluteUrl(image));
   upsertMeta('meta[property="og:type"]', ["property", "og:type"], null, "website");
+  upsertMeta('meta[property="og:url"]', ["property", "og:url"], null, absoluteUrl(canonical));
+  upsertMeta('meta[property="og:site_name"]', ["property", "og:site_name"], null, title.split("|")[0].trim());
   upsertMeta('meta[name="twitter:card"]', ["name", "twitter:card"], null, "summary_large_image");
+  upsertMeta('meta[name="twitter:title"]', ["name", "twitter:title"], null, title);
+  upsertMeta('meta[name="twitter:description"]', ["name", "twitter:description"], null, description);
+  upsertMeta('meta[name="twitter:image"]', ["name", "twitter:image"], null, absoluteUrl(image));
 
   let canonicalTag = document.head.querySelector('link[rel="canonical"]');
   if (!canonicalTag) {
@@ -56,8 +61,16 @@ export function lodgingJsonLd(settings) {
     image: absoluteUrl(settings.coverImage),
     telephone: settings.phone,
     email: settings.email,
-    address: settings.address,
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: settings.address,
+      addressLocality: "Nairobi",
+      addressCountry: "KE"
+    },
     url: absoluteUrl("/"),
+    priceRange: "KES",
+    checkinTime: settings.checkIn,
+    checkoutTime: settings.checkOut,
     amenityFeature: settings.whyChoose.map((item) => ({
       "@type": "LocationFeatureSpecification",
       name: item.title,
@@ -69,18 +82,27 @@ export function lodgingJsonLd(settings) {
 export function roomJsonLd(room, settings) {
   return {
     "@context": "https://schema.org",
-    "@type": "HotelRoom",
-    name: room.name,
-    description: room.description,
-    image: absoluteUrl(room.coverImage),
-    occupancy: {
-      "@type": "QuantitativeValue",
-      maxValue: room.capacity
-    },
-    containedInPlace: {
-      "@type": "LodgingBusiness",
-      name: settings.name
-    }
+    "@graph": [
+      lodgingJsonLd(settings),
+      {
+        "@type": "Product",
+        name: room.name,
+        description: room.description,
+        image: absoluteUrl(room.coverImage),
+        brand: { "@type": "Brand", name: settings.name },
+        offers: {
+          "@type": "Offer",
+          priceCurrency: "KES",
+          price: room.price,
+          availability: "https://schema.org/InStock",
+          url: absoluteUrl(`/rooms/${room.slug}`)
+        },
+        additionalProperty: [
+          { "@type": "PropertyValue", name: "Maximum occupancy", value: room.capacity },
+          { "@type": "PropertyValue", name: "Room type", value: room.size }
+        ]
+      }
+    ]
   };
 }
 

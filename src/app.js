@@ -2,8 +2,10 @@ import {
   createInquiry,
   currentUser,
   deleteBooking,
+  deleteInquiry,
   deleteRoom,
   deleteService,
+  deleteTestimonial,
   getContent,
   isSupabaseConfigured,
   rangesOverlap,
@@ -11,9 +13,11 @@ import {
   saveRoom,
   saveService,
   saveSettings,
+  saveTestimonial,
   signIn,
   signOut,
   slugify,
+  updateInquiry,
   uploadMedia
 } from "./lib/db.js";
 import { lodgingJsonLd, roomJsonLd, serviceJsonLd, setSeo } from "./lib/seo.js";
@@ -83,6 +87,10 @@ function hydrateChrome() {
   document.querySelectorAll("[data-brand-name]").forEach((node) => {
     node.textContent = store.settings.shortName || store.settings.name;
   });
+  document.querySelectorAll("[data-brand-logo]").forEach((node) => {
+    node.src = store.settings.logoImage || "/assets/brand/alkey-logo.png";
+    node.alt = store.settings.name;
+  });
   document.querySelector("[data-whatsapp-global]").href = whatsappUrl(
     store.settings.whatsapp,
     `Hello ${store.settings.shortName || store.settings.name}, I have a question about booking.`
@@ -94,7 +102,7 @@ function renderFooter() {
   document.querySelector("[data-footer]").innerHTML = `
     <div class="footer-grid">
       <section>
-        <img class="footer-logo" src="/assets/brand/alkey-logo.png" alt="${esc(store.settings.name)}" width="72" height="49" />
+        <img class="footer-logo" src="${esc(store.settings.logoImage || "/assets/brand/alkey-logo.png")}" alt="${esc(store.settings.name)}" width="72" height="49" />
         <h2>${esc(store.settings.name)}</h2>
         <p>${esc(store.settings.metaDescription)}</p>
       </section>
@@ -158,27 +166,30 @@ function renderHome() {
 
   app.innerHTML = `
     <section class="hero">
-      ${settings.coverVideo ? `<video class="hero-media" autoplay muted loop playsinline poster="${esc(settings.coverImage)}"><source src="${esc(settings.coverVideo)}" type="video/mp4"></video>` : `<img class="hero-media" src="${esc(settings.coverImage)}" alt="${esc(settings.name)} serviced apartment exterior" />`}
-      <div class="hero-shade"></div>
-      <div class="hero-content page-pad">
+      <div class="hero-copy page-pad">
         <p class="eyebrow">Luxury serviced stays in Roysambu</p>
         <h1>${heroHeadline(settings.tagline)}</h1>
-        <p>${esc(settings.about.split(". ").slice(0, 2).join(". "))}.</p>
+        <p>${esc(settings.about.split(". ").slice(0, 2).join(". ").replace(/\.{2,}$/g, ""))}.</p>
         <div class="button-row">
-          <a class="button light" href="/rooms" data-link>Explore rooms</a>
+          <a class="button outline" href="/rooms" data-link>Explore rooms</a>
           <a class="button accent" href="${whatsappUrl(settings.whatsapp, `Hello ${settings.shortName}, I would like to book a stay.`)}">Book on WhatsApp</a>
         </div>
         <form class="hero-booking" data-hero-booking>
-          <label>Check in <input name="startDate" type="date" required /></label>
-          <label>Check out <input name="endDate" type="date" required /></label>
-          <label>Guests <input name="guests" type="number" min="1" value="2" required /></label>
-          <label>Room <select name="roomId">${rooms.map((room) => `<option value="${esc(room.id)}">${esc(room.name)}</option>`).join("")}</select></label>
-          <button class="button accent" type="submit">Search</button>
+          <label><span>Check-in <small>dd/mm/yyyy</small></span><input name="startDate" type="date" min="${todayIso()}" required /></label>
+          <label><span>Check-out <small>dd/mm/yyyy</small></span><input name="endDate" type="date" min="${addDaysIso(todayIso(), 1)}" required /></label>
+          <label><span>Guests</span><input name="guests" type="number" min="1" value="2" required /></label>
+          <label><span>Room</span><select name="roomId">${rooms.map((room) => `<option value="${esc(room.id)}">${esc(room.name)}</option>`).join("")}</select></label>
+          <button class="button accent" type="submit">Search availability</button>
         </form>
         <div class="availability-dots" aria-label="Live availability preview">
-          ${availabilityDots().map((dot) => `<span class="${dot}"></span>`).join("")}
-          <small>next 14 nights, live availability</small>
+          ${availabilityDots().map((dot) => `<span class="${dot}" title="${dot === "open" ? "Available" : "Booked"}" aria-label="${dot === "open" ? "Available" : "Booked"}></span>`).join("")}
+          <span class="availability-legend"><i class="open"></i> Available <i class="full"></i> Booked</span>
+          <small>next 14 nights</small>
         </div>
+      </div>
+      <div class="hero-visual">
+        ${settings.coverVideo ? `<video class="hero-media" autoplay muted loop playsinline poster="${esc(settings.coverImage)}"><source src="${esc(settings.coverVideo)}" type="video/mp4"></video>` : `<img class="hero-media" src="${esc(settings.coverImage)}" alt="${esc(settings.name)} serviced apartment exterior" />`}
+        <div class="hero-visual-card"><strong>${esc(settings.propertyType || "Serviced apartment")}</strong><span>${esc(settings.landmark || settings.address)}</span></div>
       </div>
     </section>
 
@@ -246,7 +257,7 @@ function renderHome() {
           <blockquote>
             <div aria-label="5 star rating">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
             <p>"${esc(item.quote)}"</p>
-            <cite> ${esc(item.name)}</cite>
+            <cite>${esc(item.name)} <small>${esc(item.source || "Guest review")} · ${esc(formatDisplayDate(item.date || item.reviewDate))}</small></cite>
           </blockquote>
         `).join("")}
       </div>
@@ -254,7 +265,11 @@ function renderHome() {
 
     ${locationBlock()}
   `;
-  app.querySelector("[data-hero-booking]").addEventListener("submit", handleHeroBooking);
+  const heroBooking = app.querySelector("[data-hero-booking]");
+  heroBooking.addEventListener("submit", handleHeroBooking);
+  heroBooking.startDate.addEventListener("change", () => {
+    heroBooking.endDate.min = addDaysIso(heroBooking.startDate.value || todayIso(), 1);
+  });
 }
 
 function renderRooms() {
@@ -318,20 +333,23 @@ function renderRoomDetail(slug) {
         <p class="muted">Blocked dates cannot be selected. Confirmed bookings are also protected in Supabase with a no-overlap database rule.</p>
         ${availabilityCalendar(room)}
         <form data-room-booking="${esc(room.id)}" class="stack">
-          <label>Check-in <input name="startDate" type="date" value="${esc(params.get("start") || "")}" required /></label>
-          <label>Check-out <input name="endDate" type="date" value="${esc(params.get("end") || "")}" required /></label>
+          <label>Check-in <small class="field-help">dd/mm/yyyy</small><input name="startDate" type="date" min="${todayIso()}" value="${esc(params.get("start") || "")}" required /></label>
+          <label>Check-out <small class="field-help">dd/mm/yyyy</small><input name="endDate" type="date" min="${addDaysIso(todayIso(), 1)}" value="${esc(params.get("end") || "")}" required /></label>
           <label>Guests <input name="guests" type="number" min="1" max="${esc(room.capacity)}" value="${esc(params.get("guests") || "1")}" required /></label>
           <label>Your name <input name="guestName" type="text" placeholder="Jane" /></label>
           <label>Phone <input name="guestPhone" type="tel" placeholder="+254..." /></label>
           <label>Note <textarea name="note" rows="3" placeholder="Arrival time, requests, questions"></textarea></label>
+          <div class="total-preview" data-total-preview>Estimated total will appear after selecting dates.</div>
           <button class="button accent wide" type="submit">Book on WhatsApp</button>
           <p data-booking-error class="form-error"></p>
         </form>
+        <div class="policy-note"><strong>Direct payment</strong><p>${esc(store.settings.paymentNote || "Guests pay the owner directly after confirming availability.")}</p><small>${esc(store.settings.taxNote || "Confirm applicable taxes or fees before payment.")}</small></div>
       </aside>
     </section>
   `;
 
   app.querySelector("[data-room-booking]").addEventListener("submit", handleRoomBooking);
+  bindBookingDateInputs(app.querySelector("[data-room-booking]"), room);
 }
 
 function renderServices() {
@@ -436,6 +454,11 @@ function renderAbout() {
       <div class="why-grid">
         ${store.settings.whyChoose.map((item) => `<article><h3>${esc(item.title)}</h3><p>${esc(item.text)}</p></article>`).join("")}
       </div>
+      <div class="policy-grid">
+        <article><h3>House rules</h3><ul>${(store.settings.houseRules || []).map((rule) => `<li>${esc(rule)}</li>`).join("")}</ul></article>
+        <article><h3>Cancellation</h3><p>${esc(store.settings.cancellationPolicy || "Confirm the cancellation terms with the owner before payment.")}</p></article>
+        <article><h3>Children & extra beds</h3><p>${esc(store.settings.childrenPolicy || "Ask the owner about room capacity and extra-bed options.")}</p></article>
+      </div>
     </section>
   `;
 }
@@ -450,7 +473,19 @@ function renderContact() {
   app.innerHTML = `
     ${pageHero("Contact", "Questions, directions and same-day guest support.", store.settings.coverImage)}
     ${locationBlock()}
+    <section class="section page-pad contact-form-section">
+      <div class="section-head"><div><p class="eyebrow">Message the owner</p><h2>How can we help?</h2><p>Send a question or booking request and we will reply directly.</p></div></div>
+      <form class="contact-form" data-contact-form>
+        <label>Your name <input name="guestName" required /></label>
+        <label>Phone or WhatsApp <input name="guestPhone" type="tel" required /></label>
+        <label>Email <input name="email" type="email" /></label>
+        <label class="full">Message <textarea name="message" rows="5" required placeholder="Tell us your dates, room preference or question"></textarea></label>
+        <button class="button accent" type="submit">Send message</button>
+        <p class="form-error" data-contact-result></p>
+      </form>
+    </section>
   `;
+  app.querySelector("[data-contact-form]").addEventListener("submit", handleContactForm);
 }
 
 function renderAuth() {
@@ -500,7 +535,9 @@ async function renderAdmin(section) {
     services: adminServices,
     site: adminSite,
     bookings: adminBookings,
-    media: adminMedia
+    media: adminMedia,
+    testimonials: adminTestimonials,
+    inquiries: adminInquiries
   }[section] || adminDashboard;
 
   app.innerHTML = `
@@ -513,6 +550,8 @@ async function renderAdmin(section) {
         <a href="/admin/bookings" data-link class="${section === "bookings" ? "active" : ""}">Bookings</a>
         <a href="/admin/site" data-link class="${section === "site" ? "active" : ""}">Site settings</a>
         <a href="/admin/media" data-link class="${section === "media" ? "active" : ""}">Media</a>
+        <a href="/admin/testimonials" data-link class="${section === "testimonials" ? "active" : ""}">Testimonials</a>
+        <a href="/admin/inquiries" data-link class="${section === "inquiries" ? "active" : ""}">Inquiries</a>
         <button class="button ghost wide" data-sign-out>Sign out</button>
       </aside>
       <div class="admin-content">${content()}</div>
@@ -593,7 +632,7 @@ function adminDashboard() {
     <section class="admin-hero">
       <div>
         <p class="eyebrow">Owner dashboard</p>
-        <h2>Good day, ALKEY.</h2>
+        <h2>Good day, ${esc(store.settings.shortName || store.settings.name)}.</h2>
         <p>${isSupabaseConfigured() ? "Connected to Supabase. Your live rooms, services, bookings and media are being managed from here." : "Local demo mode. Add Supabase keys in src/config.js when you are ready for production."}</p>
       </div>
     </section>
@@ -686,19 +725,30 @@ function adminSite() {
       <form data-site-form class="admin-form">
         <label>Name <input name="name" value="${esc(settings.name)}" required /></label>
         <label>Short name <input name="shortName" value="${esc(settings.shortName)}" /></label>
+        <label>Logo image URL <input name="logoImage" value="${esc(settings.logoImage || "/assets/brand/alkey-logo.png")}" /></label>
         <label>WhatsApp <input name="whatsapp" value="${esc(settings.whatsapp)}" required /></label>
         <label>Phone <input name="phone" value="${esc(settings.phone)}" /></label>
         <label>Email <input name="email" value="${esc(settings.email)}" /></label>
         <label>Address <input name="address" value="${esc(settings.address)}" /></label>
+        <label>Property type <input name="propertyType" value="${esc(settings.propertyType || "Serviced apartment")}" /></label>
+        <label>Nearby landmark <input name="landmark" value="${esc(settings.landmark || "")}" /></label>
         <label>Check-in <input name="checkIn" value="${esc(settings.checkIn)}" /></label>
         <label>Check-out <input name="checkOut" value="${esc(settings.checkOut)}" /></label>
+        <label class="full">Check-in notes <textarea name="checkInNotes" rows="2">${esc(settings.checkInNotes || "")}</textarea></label>
         <label class="full">Tagline <textarea name="tagline" rows="2">${esc(settings.tagline)}</textarea></label>
         <label class="full">About <textarea name="about" rows="6">${esc(settings.about)}</textarea></label>
         <label class="full">Our story <textarea name="story" rows="5">${esc(settings.story || "")}</textarea></label>
         <label class="full">Meta description <textarea name="metaDescription" rows="3">${esc(settings.metaDescription)}</textarea></label>
+        <label class="full">House rules, one per line <textarea name="houseRules" rows="4">${esc((settings.houseRules || []).join("\n"))}</textarea></label>
+        <label class="full">Cancellation policy <textarea name="cancellationPolicy" rows="3">${esc(settings.cancellationPolicy || "")}</textarea></label>
+        <label class="full">Children and extra-bed policy <textarea name="childrenPolicy" rows="3">${esc(settings.childrenPolicy || "")}</textarea></label>
+        <label class="full">Accepted payment methods, one per line <textarea name="paymentMethods" rows="3">${esc((settings.paymentMethods || []).join("\n"))}</textarea></label>
+        <label class="full">Direct payment note <textarea name="paymentNote" rows="2">${esc(settings.paymentNote || "")}</textarea></label>
+        <label class="full">Tax and fee note <textarea name="taxNote" rows="2">${esc(settings.taxNote || "")}</textarea></label>
         <label>Cover image URL <input name="coverImage" value="${esc(settings.coverImage)}" /></label>
         <label>Cover video URL <input name="coverVideo" value="${esc(settings.coverVideo || "")}" /></label>
         <label>Upload cover image <input name="coverUpload" type="file" accept="image/*" /></label>
+        <label>Upload logo image <input name="logoUpload" type="file" accept="image/*" /></label>
         <label>Upload short video <input name="videoUpload" type="file" accept="video/mp4,video/webm" /></label>
         <label class="full">Map embed URL <input name="mapEmbed" value="${esc(settings.mapEmbed)}" /></label>
         <label class="full">Why choose us, one per line as: heading | text <textarea name="whyChoose" rows="5">${esc(settings.whyChoose.map((item) => `${item.title} | ${item.text}`).join("\n"))}</textarea></label>
@@ -714,11 +764,13 @@ function adminBookings() {
     <div class="admin-head"><h2>Bookings and blocked dates</h2><p>Confirmed blocks stop duplicate bookings in the public calendar and in the Supabase database.</p></div>
     <section class="admin-panel">
       <form data-booking-form class="admin-form compact">
+        <input type="hidden" name="id" />
         <label>Room <select name="roomId">${store.rooms.map((room) => `<option value="${esc(room.id)}">${esc(room.name)}</option>`).join("")}</select></label>
         <label>Guest/block label <input name="guestName" required /></label>
         <label>Start date <input name="startDate" type="date" required /></label>
         <label>End date <input name="endDate" type="date" required /></label>
-        <button class="button accent" type="submit">Add confirmed block</button>
+        <label>Status <select name="status"><option value="confirmed">confirmed / blocked</option><option value="cancelled">cancelled / open</option></select></label>
+        <button class="button accent" type="submit">Save date block</button>
       </form>
     </section>
     <section class="admin-panel"><h3>Confirmed blocks</h3>${bookingTable()}</section>
@@ -734,6 +786,7 @@ function adminMedia() {
         <label>Media target
           <select name="target">
             <option value="site-cover-image">Homepage cover image</option>
+            <option value="site-logo-image">Brand logo</option>
             <option value="site-cover-video">Homepage background video</option>
             <option value="room-cover-image">Room cover image</option>
             <option value="room-cover-video">Room video</option>
@@ -759,6 +812,48 @@ function adminMedia() {
       </form>
       <div class="copy-box" data-upload-result>No upload yet.</div>
     </section>
+    <section class="admin-panel"><h3>Assigned media</h3><p class="muted">Remove a cover or gallery image from the site without editing code. Uploaded files can still be reused by URL.</p>${mediaAssignments()}</section>
+  `;
+}
+
+function mediaAssignments() {
+  const rows = [];
+  if (store.settings.logoImage) rows.push({ type: "site-logo", label: "Brand logo", url: store.settings.logoImage });
+  if (store.settings.coverImage) rows.push({ type: "site-cover", label: "Homepage cover", url: store.settings.coverImage });
+  store.rooms.forEach((room) => {
+    if (room.coverImage) rows.push({ type: "room-cover", id: room.id, label: `${room.name} cover`, url: room.coverImage });
+    (room.gallery || []).forEach((url, index) => rows.push({ type: "room-gallery", id: room.id, index, label: `${room.name} gallery ${index + 1}`, url }));
+  });
+  store.services.forEach((service) => {
+    if (service.coverImage) rows.push({ type: "service-cover", id: service.id, label: `${service.name} cover`, url: service.coverImage });
+  });
+  if (!rows.length) return "<p>No assigned media yet.</p>";
+  return `<div class="media-assignment-list">${rows.map((row) => `<article><img src="${esc(row.url)}" alt="" loading="lazy" /><div><strong>${esc(row.label)}</strong><code>${esc(row.url)}</code></div><button class="icon-button danger" data-remove-media="${esc([row.type, row.id || "", row.index ?? ""].join(":"))}">Remove</button></article>`).join("")}</div>`;
+}
+
+function adminTestimonials() {
+  return `
+    <div class="admin-head"><h2>Testimonials</h2><p>Keep guest feedback genuine, dated and easy to update from the owner login.</p></div>
+    <section class="admin-panel">
+      <form data-testimonial-form class="admin-form">
+        <input type="hidden" name="id" />
+        <label>Name / location <input name="name" required placeholder="Mercy, Nairobi" /></label>
+        <label>Source <input name="source" value="Guest review" /></label>
+        <label>Date <input name="reviewDate" type="date" /></label>
+        <label>Status <select name="status"><option>published</option><option>draft</option></select></label>
+        <label class="full">Review <textarea name="quote" rows="4" required></textarea></label>
+        <button class="button accent" type="submit">Save testimonial</button>
+        <button class="button ghost" type="reset">Clear form</button>
+      </form>
+    </section>
+    <section class="admin-panel"><h3>Existing testimonials</h3>${testimonialTable()}</section>
+  `;
+}
+
+function adminInquiries() {
+  return `
+    <div class="admin-head"><h2>Guest inquiries</h2><p>Review, close or remove contact and service requests without touching the backend.</p></div>
+    <section class="admin-panel">${inquiryList(store.inquiries, true)}</section>
   `;
 }
 
@@ -768,6 +863,8 @@ function bindAdmin(section) {
   if (section === "site") bindSiteAdmin();
   if (section === "bookings") bindBookingAdmin();
   if (section === "media") bindMediaAdmin();
+  if (section === "testimonials") bindTestimonialAdmin();
+  if (section === "inquiries") bindInquiryAdmin();
 }
 
 function bindRoomAdmin() {
@@ -853,11 +950,14 @@ function bindSiteAdmin() {
     event.preventDefault();
     const values = Object.fromEntries(new FormData(form));
     if (form.coverUpload.files[0]) values.coverImage = await uploadMedia(form.coverUpload.files[0], "site-media");
+    if (form.logoUpload.files[0]) values.logoImage = await uploadMedia(form.logoUpload.files[0], "site-media");
     if (form.videoUpload.files[0]) values.coverVideo = await uploadMedia(form.videoUpload.files[0], "site-media");
     await saveSettings({
       ...store.settings,
       ...values,
       socials: store.settings.socials,
+      houseRules: splitLines(values.houseRules),
+      paymentMethods: splitLines(values.paymentMethods),
       whyChoose: splitLines(values.whyChoose).map((line, index) => {
         const [itemTitle, text] = line.split("|").map((part) => part.trim());
         return { icon: store.settings.whyChoose[index]?.icon || defaultWhyIcon(index), title: itemTitle, text: text || "" };
@@ -873,6 +973,9 @@ function bindSiteAdmin() {
 
 function bindBookingAdmin() {
   const form = app.querySelector("[data-booking-form]");
+  app.querySelectorAll("[data-edit-booking]").forEach((button) => {
+    button.addEventListener("click", () => fillBookingForm(store.bookings.find((booking) => booking.id === button.dataset.editBooking), form));
+  });
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     const values = Object.fromEntries(new FormData(form));
@@ -880,8 +983,8 @@ function bindBookingAdmin() {
       showToast("End date must be after start date.", true);
       return;
     }
-    await saveBooking({ ...values, status: "confirmed", source: "admin" });
-    await reloadAdmin("bookings", "Dates blocked.");
+    await saveBooking({ ...values, status: values.status || "confirmed", source: "admin" });
+    await reloadAdmin("bookings", values.status === "cancelled" ? "Date block cancelled." : "Dates blocked.");
   });
   app.querySelectorAll("[data-delete-booking]").forEach((button) => {
     button.addEventListener("click", async () => {
@@ -904,6 +1007,63 @@ function bindMediaAdmin() {
     app.querySelector("[data-upload-result]").innerHTML = `<strong>${applied}</strong><code>${esc(url)}</code>`;
     showToast(applied);
   });
+  app.querySelectorAll("[data-remove-media]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      if (!confirm("Remove this media assignment?")) return;
+      const [type, id, index] = button.dataset.removeMedia.split(":");
+      if (type === "site-logo") await saveSettings({ ...store.settings, logoImage: "/assets/brand/alkey-logo.png" });
+      if (type === "site-cover") await saveSettings({ ...store.settings, coverImage: "" });
+      if (type === "room-cover") {
+        const room = store.rooms.find((item) => item.id === id);
+        if (room) await saveRoom({ ...room, coverImage: room.gallery?.[0] || "" });
+      }
+      if (type === "room-gallery") {
+        const room = store.rooms.find((item) => item.id === id);
+        if (room) await saveRoom({ ...room, gallery: (room.gallery || []).filter((_, itemIndex) => itemIndex !== Number(index)) });
+      }
+      if (type === "service-cover") {
+        const service = store.services.find((item) => item.id === id);
+        if (service) await saveService({ ...service, coverImage: "" });
+      }
+      await reloadAdmin("media", "Media assignment removed.");
+    });
+  });
+}
+
+function bindTestimonialAdmin() {
+  const form = app.querySelector("[data-testimonial-form]");
+  app.querySelectorAll("[data-edit-testimonial]").forEach((button) => {
+    button.addEventListener("click", () => fillTestimonialForm(store.testimonials.find((item) => item.id === button.dataset.editTestimonial), form));
+  });
+  app.querySelectorAll("[data-delete-testimonial]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      if (!confirm("Delete this testimonial?")) return;
+      await deleteTestimonial(button.dataset.deleteTestimonial);
+      await reloadAdmin("testimonials", "Testimonial deleted.");
+    });
+  });
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const values = Object.fromEntries(new FormData(form));
+    await saveTestimonial(values);
+    await reloadAdmin("testimonials", "Testimonial saved.");
+  });
+}
+
+function bindInquiryAdmin() {
+  app.querySelectorAll("[data-inquiry-status]").forEach((select) => {
+    select.addEventListener("change", async () => {
+      await updateInquiry(select.dataset.inquiryStatus, select.value);
+      showToast("Inquiry updated.");
+    });
+  });
+  app.querySelectorAll("[data-delete-inquiry]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      if (!confirm("Delete this inquiry?")) return;
+      await deleteInquiry(button.dataset.deleteInquiry);
+      await reloadAdmin("inquiries", "Inquiry deleted.");
+    });
+  });
 }
 
 function bucketForTarget(target) {
@@ -916,6 +1076,10 @@ async function applyUploadedMedia(values, url) {
   if (values.target === "site-cover-image") {
     await saveSettings({ ...store.settings, coverImage: url });
     return "Homepage cover image updated.";
+  }
+  if (values.target === "site-logo-image") {
+    await saveSettings({ ...store.settings, logoImage: url });
+    return "Brand logo updated.";
   }
   if (values.target === "site-cover-video") {
     await saveSettings({ ...store.settings, coverVideo: url });
@@ -986,7 +1150,8 @@ async function handleRoomBooking(event) {
     return;
   }
 
-  const message = roomBookingMessage({ room, settings: store.settings, ...values });
+  const totalCost = nightsBetween(values.startDate, values.endDate) * Number(room.price || 0);
+  const message = roomBookingMessage({ room, settings: store.settings, totalCost, ...values });
   openWhatsapp(store.settings.whatsapp, message);
   await createInquiry({
     type: "room",
@@ -997,6 +1162,62 @@ async function handleRoomBooking(event) {
     endDate: values.endDate,
     message
   });
+}
+
+function bindBookingDateInputs(form, room) {
+  const start = form.querySelector('[name="startDate"]');
+  const end = form.querySelector('[name="endDate"]');
+  const preview = form.querySelector("[data-total-preview]");
+  const refresh = () => {
+    if (start.value) end.min = addDaysIso(start.value, 1);
+    const nights = nightsBetween(start.value, end.value);
+    preview.textContent = nights > 0
+      ? `Estimated total: KSh ${(nights * Number(room.price || 0)).toLocaleString()} for ${nights} night${nights === 1 ? "" : "s"}. Taxes or fees, if applicable, are confirmed before payment.`
+      : "Estimated total will appear after selecting valid dates.";
+    if (start.value && end.value && (roomBlocked(room.id, start.value, end.value) || start.value >= end.value)) {
+      preview.classList.add("is-warning");
+    } else {
+      preview.classList.remove("is-warning");
+    }
+  };
+  start.addEventListener("change", refresh);
+  end.addEventListener("change", refresh);
+  app.querySelectorAll("[data-calendar-date]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const selected = button.dataset.calendarDate;
+      if (!start.value || (start.value && end.value)) {
+        start.value = selected;
+        end.value = "";
+      } else if (selected > start.value && !roomBlocked(room.id, start.value, selected)) {
+        end.value = selected;
+      } else {
+        start.value = selected;
+        end.value = "";
+      }
+      refresh();
+    });
+  });
+  refresh();
+}
+
+async function handleContactForm(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const values = Object.fromEntries(new FormData(form));
+  const result = form.querySelector("[data-contact-result]");
+  result.textContent = "Sending…";
+  try {
+    await createInquiry({
+      type: "general",
+      guestName: values.guestName,
+      guestPhone: `${values.guestPhone}${values.email ? ` · ${values.email}` : ""}`,
+      message: values.message
+    });
+    result.textContent = "Thanks — your message has been sent. We will reply shortly.";
+    form.reset();
+  } catch (error) {
+    result.textContent = error.message;
+  }
 }
 
 async function handleServiceOrder(event) {
@@ -1031,8 +1252,7 @@ function roomCard(room) {
       <div>
         <h3>${esc(room.name)}</h3>
         <div class="room-meta">
-          <span>Sleeps ${esc(room.capacity)}</span>
-          <span>${esc(room.size)}</span>
+          <span>Sleeps ${esc(room.capacity)} <i>·</i> ${esc(room.size)}</span>
           <strong>from ${esc(room.priceLabel)}</strong>
         </div>
         <p>${esc(room.description)}</p>
@@ -1070,10 +1290,12 @@ function locationBlock() {
         <h2>How to get here</h2>
         <dl class="contact-list">
           <div><dt>Address</dt><dd>${esc(settings.address)}</dd></div>
+          <div><dt>Landmark</dt><dd>${esc(settings.landmark || "Ask for the exact pin on WhatsApp")}</dd></div>
           <div><dt>Hours</dt><dd>Check-in ${esc(settings.checkIn)} &middot; Check-out ${esc(settings.checkOut)}</dd></div>
           <div><dt>Phone</dt><dd>${esc(settings.phone)}</dd></div>
           <div><dt>Email</dt><dd>${esc(settings.email)}</dd></div>
         </dl>
+        <p class="muted contact-note">${esc(settings.checkInNotes || "Arrival instructions are shared after confirmation.")}</p>
         <a class="button accent" href="${whatsappUrl(settings.whatsapp, `Hello ${settings.shortName}, I need directions.`)}">Chat on WhatsApp</a>
       </div>
     </section>
@@ -1114,15 +1336,20 @@ function isVideo(src) {
 function availabilityCalendar(room) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const month = today.toLocaleDateString(undefined, { month: "long", year: "numeric" });
+  const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  const mondayOffset = (firstOfMonth.getDay() + 6) % 7;
+  const calendarStart = new Date(firstOfMonth);
+  calendarStart.setDate(firstOfMonth.getDate() - mondayOffset);
+  const month = firstOfMonth.toLocaleDateString(undefined, { month: "long", year: "numeric" });
   const weekdayHead = ["M", "T", "W", "T", "F", "S", "S"].map((day) => `<span class="day-head">${day}</span>`).join("");
   const days = Array.from({ length: 42 }, (_, index) => {
-    const date = new Date(today);
-    date.setDate(today.getDate() + index);
-    const iso = date.toISOString().slice(0, 10);
+    const date = new Date(calendarStart);
+    date.setDate(calendarStart.getDate() + index);
+    const iso = formatLocalIso(date);
     const blocked = roomBlocked(room.id, iso, addDaysIso(iso, 1));
-    const label = `${iso} ${blocked ? "booked" : "available"}`;
-    return `<span class="${blocked ? "blocked" : "available"}" aria-label="${label}" title="${blocked ? "Booked" : "Available"}">${date.getDate()}</span>`;
+    const past = iso < todayIso();
+    const label = `${formatDisplayDate(iso)} ${blocked ? "booked" : past ? "past" : "available"}`;
+    return `<button type="button" class="calendar-day ${blocked ? "blocked" : "available"} ${past ? "past" : ""}" data-calendar-date="${iso}" ${blocked || past ? "disabled" : ""} aria-label="${label}" title="${blocked ? "Booked" : past ? "Past date" : "Available"}">${date.getDate()}</button>`;
   }).join("");
   return `
     <div class="calendar-card" aria-label="Availability calendar for ${esc(room.name)}">
@@ -1131,6 +1358,7 @@ function availabilityCalendar(room) {
         <div><span class="legend open"></span>Available <span class="legend blocked"></span>Booked</div>
       </div>
       <div class="mini-calendar">${weekdayHead}${days}</div>
+      <p class="calendar-help">Select an available check-in and check-out date. Booked dates are disabled.</p>
     </div>
   `;
 }
@@ -1141,7 +1369,7 @@ function availabilityDots() {
   return Array.from({ length: 14 }, (_, index) => {
     const date = new Date(today);
     date.setDate(today.getDate() + index);
-    const iso = date.toISOString().slice(0, 10);
+    const iso = formatLocalIso(date);
     const next = addDaysIso(iso, 1);
     const hasOpenRoom = rooms.some((room) => !roomBlocked(room.id, iso, next));
     return hasOpenRoom ? "open" : "full";
@@ -1150,8 +1378,8 @@ function availabilityDots() {
 
 function roomBlocked(roomId, startDate, endDate) {
   return store.bookings.some((booking) => (
-    booking.roomId === roomId &&
-    booking.status === "confirmed" &&
+    String(booking.roomId) === String(roomId) &&
+    (booking.status || "confirmed") === "confirmed" &&
     rangesOverlap(booking.startDate, booking.endDate, startDate, endDate)
   ));
 }
@@ -1192,7 +1420,7 @@ function bookingTable() {
               <td>${esc(store.rooms.find((room) => room.id === booking.roomId)?.name || "Unknown room")}</td>
               <td>${esc(booking.guestName)}</td>
               <td>${esc(booking.startDate)} to ${esc(booking.endDate)}</td>
-              <td><button class="icon-button danger" data-delete-booking="${esc(booking.id)}">Remove</button></td>
+              <td><button class="icon-button" data-edit-booking="${esc(booking.id)}">Edit</button><button class="icon-button danger" data-delete-booking="${esc(booking.id)}">Remove</button></td>
             </tr>
           `).join("")}
         </tbody>
@@ -1201,13 +1429,20 @@ function bookingTable() {
   `;
 }
 
-function inquiryList(items) {
+function testimonialTable() {
+  if (!store.testimonials.length) return "<p>No testimonials yet.</p>";
+  return `<div class="responsive-table"><table><thead><tr><th>Guest</th><th>Review</th><th>Source/date</th><th>Status</th><th>Actions</th></tr></thead><tbody>${store.testimonials.map((item) => `
+    <tr><td>${esc(item.name)}</td><td>${esc(item.quote)}</td><td>${esc(item.source || "Guest review")}<br />${esc(formatDisplayDate(item.reviewDate || item.date))}</td><td>${esc(item.status || "published")}</td><td><button class="icon-button" data-edit-testimonial="${esc(item.id || "")}">Edit</button><button class="icon-button danger" data-delete-testimonial="${esc(item.id || "")}">Delete</button></td></tr>
+  `).join("")}</tbody></table></div>`;
+}
+
+function inquiryList(items, manage = false) {
   if (!items.length) return "<p>No inquiries yet.</p>";
   return `<div class="inquiry-list">${items.map((item) => `
     <article>
-      <strong>${esc(item.type || "inquiry")} ${item.guestName || item.guest_name ? `&middot; ${esc(item.guestName || item.guest_name)}` : ""}</strong>
+      <div class="inquiry-head"><strong>${esc(item.type || "inquiry")} ${item.guestName || item.guest_name ? `&middot; ${esc(item.guestName || item.guest_name)}` : ""}</strong>${manage ? `<select data-inquiry-status="${esc(item.id)}"><option ${item.status === "new" ? "selected" : ""}>new</option><option ${item.status === "open" ? "selected" : ""}>open</option><option ${item.status === "closed" ? "selected" : ""}>closed</option></select><button class="icon-button danger" data-delete-inquiry="${esc(item.id)}">Delete</button>` : ""}</div>
       <p>${esc(item.message || "")}</p>
-      <small>${esc(item.createdAt || item.created_at || "")}</small>
+      <small>${esc(formatDisplayDateTime(item.createdAt || item.created_at || ""))} ${item.guestPhone || item.guest_phone ? `· ${esc(item.guestPhone || item.guest_phone)}` : ""}</small>
     </article>
   `).join("")}</div>`;
 }
@@ -1246,6 +1481,28 @@ function fillServiceForm(service, form) {
   form.shortDescription.value = service.shortDescription || "";
   form.description.value = service.description || "";
   form.items.value = (service.items || []).map((item) => `${item.name} | ${item.price}`).join("\n");
+  form.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function fillBookingForm(booking, form) {
+  if (!booking) return;
+  form.id.value = booking.id || "";
+  form.roomId.value = booking.roomId || "";
+  form.guestName.value = booking.guestName || "";
+  form.startDate.value = booking.startDate || "";
+  form.endDate.value = booking.endDate || "";
+  form.status.value = booking.status || "confirmed";
+  form.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function fillTestimonialForm(testimonial, form) {
+  if (!testimonial) return;
+  form.id.value = testimonial.id || "";
+  form.name.value = testimonial.name || "";
+  form.source.value = testimonial.source || "Guest review";
+  form.reviewDate.value = testimonial.reviewDate || testimonial.date || "";
+  form.status.value = testimonial.status || "published";
+  form.quote.value = testimonial.quote || "";
   form.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
@@ -1347,7 +1604,39 @@ function splitComma(value) {
 function addDaysIso(iso, days) {
   const date = new Date(`${iso}T00:00:00`);
   date.setDate(date.getDate() + days);
-  return date.toISOString().slice(0, 10);
+  return formatLocalIso(date);
+}
+
+function todayIso() {
+  return formatLocalIso(new Date());
+}
+
+function formatLocalIso(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function nightsBetween(startDate, endDate) {
+  if (!startDate || !endDate || startDate >= endDate) return 0;
+  const start = new Date(`${startDate}T00:00:00`);
+  const end = new Date(`${endDate}T00:00:00`);
+  return Math.round((end - start) / 86400000);
+}
+
+function formatDisplayDate(value) {
+  if (!value) return "Date not set";
+  const date = new Date(`${String(value).slice(0, 10)}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return String(value);
+  return date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+}
+
+function formatDisplayDateTime(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+  return date.toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" });
 }
 
 init().catch((error) => {
