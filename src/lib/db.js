@@ -24,6 +24,7 @@ function localData() {
     id: item.id || `testimonial-local-${index + 1}`
   }));
   data.calendarSyncs = data.calendarSyncs || [];
+  data.roomAccessDetails = data.roomAccessDetails || clone(mockData.roomAccessDetails || {});
   const fixAssetPath = (value) => String(value || "").replaceAll("/public/assets/", "/assets/");
   data.settings.coverImage = fixAssetPath(data.settings.coverImage);
   data.settings.coverVideo = fixAssetPath(data.settings.coverVideo);
@@ -90,7 +91,8 @@ function normalizeSettings(row) {
     childrenPolicy: row.children_policy || row.childrenPolicy || "",
     paymentMethods: row.payment_methods || row.paymentMethods || [],
     paymentNote: row.payment_note || row.paymentNote || "",
-    taxNote: row.tax_note || row.taxNote || ""
+    taxNote: row.tax_note || row.taxNote || "",
+    whatsappTemplates: row.whatsapp_templates || row.whatsappTemplates || {}
   };
 }
 
@@ -122,6 +124,7 @@ function toSettingsRow(settings) {
     payment_methods: settings.paymentMethods || [],
     payment_note: settings.paymentNote,
     tax_note: settings.taxNote,
+    whatsapp_templates: settings.whatsappTemplates || {},
     socials: settings.socials || {},
     why_choose: settings.whyChoose || [],
     stats: settings.stats || []
@@ -217,6 +220,7 @@ export async function getContent() {
       ...booking,
       roomId: booking.room_id,
       guestName: booking.guest_name,
+      guestPhone: booking.guest_phone,
       startDate: booking.start_date,
       endDate: booking.end_date,
       externalSource: booking.external_source,
@@ -467,6 +471,65 @@ export async function getCalendarSyncs() {
     lastSyncedAt: sync.last_synced_at,
     lastError: sync.last_error
   }));
+}
+
+export async function getRoomAccessDetails() {
+  const client = await supabase();
+  if (!client) return clone(localData().roomAccessDetails || {});
+  const { data, error } = await client.from("room_access_details").select("*").order("updated_at", { ascending: false });
+  if (error) throw error;
+  return Object.fromEntries(data.map((item) => [item.room_id, normalizeRoomAccessDetails(item)]));
+}
+
+function normalizeRoomAccessDetails(row) {
+  return {
+    ...row,
+    roomId: row.room_id,
+    propertyName: row.property_name || "",
+    houseToCheckIn: row.house_to_check_in || "",
+    directions: row.directions || "",
+    lockboxInstructions: row.lockbox_instructions || "",
+    lockboxPassword: row.lockbox_password || "",
+    roomCode: row.room_code || "",
+    doorPass: row.door_pass || "",
+    wifiName: row.wifi_name || "",
+    wifiPassword: row.wifi_password || "",
+    checkOutTime: row.check_out_time || "",
+    checkOutNotes: row.check_out_notes || "",
+    houseRules: row.house_rules || [],
+    additionalNotes: row.additional_notes || "",
+    publicInstructions: row.public_instructions || ""
+  };
+}
+
+export async function saveRoomAccessDetails(details) {
+  const client = await supabase();
+  if (!client) {
+    const data = localData();
+    data.roomAccessDetails[details.roomId] = { ...details, roomId: details.roomId };
+    saveLocal(data);
+    return data.roomAccessDetails[details.roomId];
+  }
+  const row = {
+    room_id: details.roomId,
+    property_name: details.propertyName || "",
+    house_to_check_in: details.houseToCheckIn || "",
+    directions: details.directions || "",
+    lockbox_instructions: details.lockboxInstructions || "",
+    lockbox_password: details.lockboxPassword || "",
+    room_code: details.roomCode || "",
+    door_pass: details.doorPass || "",
+    wifi_name: details.wifiName || "",
+    wifi_password: details.wifiPassword || "",
+    check_out_time: details.checkOutTime || "",
+    check_out_notes: details.checkOutNotes || "",
+    house_rules: details.houseRules || [],
+    additional_notes: details.additionalNotes || "",
+    public_instructions: details.publicInstructions || ""
+  };
+  const { data, error } = await client.from("room_access_details").upsert(row).select().single();
+  if (error) throw error;
+  return normalizeRoomAccessDetails(data);
 }
 
 export async function saveCalendarSync(sync) {

@@ -4,7 +4,7 @@
 insert into public.site_settings (
   id, name, short_name, logo_image, tagline, meta_description, about, story, cover_image, cover_video,
   whatsapp, phone, email, address, landmark, property_type, map_embed, check_in, check_out, check_in_notes,
-  house_rules, cancellation_policy, children_policy, payment_methods, payment_note, tax_note, socials, why_choose, stats
+  house_rules, cancellation_policy, children_policy, payment_methods, payment_note, tax_note, whatsapp_templates, socials, why_choose, stats
 ) values (
   'site',
   'ALKEY Homes',
@@ -32,6 +32,7 @@ insert into public.site_settings (
   '["M-Pesa","Visa / Mastercard","Bank transfer","Cash at check-in"]',
   'Guests pay the owner directly. Confirm the final total and payment instructions on WhatsApp before arrival.',
   'Rates are shown in Kenyan shillings. Confirm applicable taxes or fees with the owner before payment.',
+  '{"booking":"Hello {{shortName}},\nI would like to book {{roomName}}.\nDates: {{startDate}} to {{endDate}}\nGuests: {{guests}}\nEstimated total: KSh {{totalCost}}\nName: {{guestName}}\nNote: {{note}}\nPlease confirm availability and total price.","service":"Hello {{shortName}},\nI would like to order: {{serviceName}}.\nKindly share your current menu and pricing.","access":"Hello {{guestName}},\nHere are your private access details for {{roomName}}:\nRoom: {{roomCode}}\nDoor pass: {{doorPass}}\nLock box password: {{lockboxPassword}}\nWiFi name: {{wifiName}}\nWiFi password: {{wifiPassword}}\n{{additionalNotes}}"}',
   '{"instagram":"https://instagram.com/","facebook":"https://facebook.com/"}',
   '[
     {"icon":"bed","title":"Beautiful Rooms","text":"Modern interiors, premium bedding and apartment comforts designed for rest."},
@@ -75,6 +76,7 @@ insert into public.site_settings (
   payment_methods = excluded.payment_methods,
   payment_note = excluded.payment_note,
   tax_note = excluded.tax_note,
+  whatsapp_templates = excluded.whatsapp_templates,
   socials = excluded.socials,
   why_choose = excluded.why_choose,
   stats = excluded.stats,
@@ -135,6 +137,44 @@ on conflict (id) do update set
   amenities = excluded.amenities,
   seo_title = excluded.seo_title,
   seo_description = excluded.seo_description,
+  updated_at = now();
+
+insert into public.room_access_details (
+  room_id, property_name, house_to_check_in, directions, lockbox_instructions, lockbox_password,
+  room_code, door_pass, wifi_name, wifi_password, check_out_time, check_out_notes, house_rules, public_instructions
+) values
+(
+  '11111111-1111-1111-1111-111111111111',
+  'TSAVO APARTMENTS CHECK IN DETAILS', 'Black Gate',
+  '3rd floor, the 1st house on your right hand from the stairs.', 'Keys are in the lock box.', '2042',
+  'RS4:C701', '2024', 'Jay Homes', 'Jay@2026', '10.00 AM',
+  'Extension past check-out time attracts charges.',
+  '["When checking out, kindly ensure everything is switched off.","Return the key in the lockbox.","You are responsible for any damage caused.","Enjoy your stay."]',
+  'Self check-in instructions and active access credentials are shared privately after confirmation.'
+),
+(
+  '22222222-2222-2222-2222-222222222222',
+  'POYLVIEW ESTATE CHECK IN DETAILS', 'Black Gate',
+  '3rd floor, the 1st house on your right hand from the stairs.', 'Keys are in the lock box.', '',
+  'RS4:C739', '', 'Jay Homes', '', '10.00 AM',
+  'Extension past check-out time attracts charges.',
+  '["When checking out, kindly ensure everything is switched off.","Return the key in the lockbox.","You are responsible for any damage caused.","Enjoy your stay."]',
+  'Self check-in instructions and active access credentials are shared privately after confirmation.'
+)
+on conflict (room_id) do update set
+  property_name = excluded.property_name,
+  house_to_check_in = excluded.house_to_check_in,
+  directions = excluded.directions,
+  lockbox_instructions = excluded.lockbox_instructions,
+  lockbox_password = excluded.lockbox_password,
+  room_code = excluded.room_code,
+  door_pass = excluded.door_pass,
+  wifi_name = excluded.wifi_name,
+  wifi_password = excluded.wifi_password,
+  check_out_time = excluded.check_out_time,
+  check_out_notes = excluded.check_out_notes,
+  house_rules = excluded.house_rules,
+  public_instructions = excluded.public_instructions,
   updated_at = now();
 
 insert into public.services (

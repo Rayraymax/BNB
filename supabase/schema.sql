@@ -52,6 +52,7 @@ create table if not exists public.site_settings (
   payment_methods jsonb not null default '[]'::jsonb,
   payment_note text,
   tax_note text,
+  whatsapp_templates jsonb not null default '{}'::jsonb,
   socials jsonb not null default '{}'::jsonb,
   why_choose jsonb not null default '[]'::jsonb,
   stats jsonb not null default '[]'::jsonb,
@@ -170,6 +171,25 @@ create table if not exists public.calendar_syncs (
   unique (room_id, feed_url)
 );
 
+create table if not exists public.room_access_details (
+  room_id uuid primary key references public.rooms(id) on delete cascade,
+  property_name text not null default '',
+  house_to_check_in text not null default '',
+  directions text not null default '',
+  lockbox_instructions text not null default '',
+  lockbox_password text not null default '',
+  room_code text not null default '',
+  door_pass text not null default '',
+  wifi_name text not null default '',
+  wifi_password text not null default '',
+  check_out_time text not null default '',
+  check_out_notes text not null default '',
+  house_rules jsonb not null default '[]'::jsonb,
+  additional_notes text not null default '',
+  public_instructions text not null default '',
+  updated_at timestamptz not null default now()
+);
+
 alter table public.site_settings add column if not exists story text;
 alter table public.site_settings add column if not exists logo_image text;
 alter table public.site_settings add column if not exists stats jsonb not null default '[]'::jsonb;
@@ -182,6 +202,7 @@ alter table public.site_settings add column if not exists children_policy text;
 alter table public.site_settings add column if not exists payment_methods jsonb not null default '[]'::jsonb;
 alter table public.site_settings add column if not exists payment_note text;
 alter table public.site_settings add column if not exists tax_note text;
+alter table public.site_settings add column if not exists whatsapp_templates jsonb not null default '{}'::jsonb;
 alter table public.rooms add column if not exists cover_video text;
 alter table public.bookings add column if not exists external_source text;
 alter table public.bookings add column if not exists external_uid text;
@@ -199,6 +220,7 @@ alter table public.bookings enable row level security;
 alter table public.inquiries enable row level security;
 alter table public.testimonials enable row level security;
 alter table public.calendar_syncs enable row level security;
+alter table public.room_access_details enable row level security;
 
 drop policy if exists "Admins can read roles" on public.user_roles;
 create policy "Admins can read roles"
@@ -299,6 +321,13 @@ with check (public.has_role('admin'));
 drop policy if exists "Admins can manage calendar syncs" on public.calendar_syncs;
 create policy "Admins can manage calendar syncs"
 on public.calendar_syncs for all
+to authenticated
+using (public.has_role('admin'))
+with check (public.has_role('admin'));
+
+drop policy if exists "Admins can manage room access details" on public.room_access_details;
+create policy "Admins can manage room access details"
+on public.room_access_details for all
 to authenticated
 using (public.has_role('admin'))
 with check (public.has_role('admin'));

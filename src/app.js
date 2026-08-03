@@ -9,11 +9,13 @@ import {
   deleteTestimonial,
   getContent,
   getCalendarSyncs,
+  getRoomAccessDetails,
   isSupabaseConfigured,
   rangesOverlap,
   saveBooking,
   saveCalendarSync,
   saveRoom,
+  saveRoomAccessDetails,
   saveService,
   saveSettings,
   saveTestimonial,
@@ -25,7 +27,7 @@ import {
 } from "./lib/db.js";
 import { SITE_BASE_URL } from "./config.js";
 import { lodgingJsonLd, roomJsonLd, serviceJsonLd, setSeo } from "./lib/seo.js";
-import { roomBookingMessage, serviceOrderMessage, whatsappUrl } from "./lib/whatsapp.js";
+import { accessDetailsMessage, roomBookingMessage, serviceOrderMessage, whatsappUrl } from "./lib/whatsapp.js";
 
 const app = document.querySelector("#app");
 const toast = document.querySelector("#toast");
@@ -535,6 +537,14 @@ async function renderAdmin(section) {
       showToast(`Calendar sync table is not ready: ${error.message}`, true);
     }
   }
+  if (section === "checkin" || section === "bookings") {
+    try {
+      store.roomAccessDetails = await getRoomAccessDetails();
+    } catch (error) {
+      store.roomAccessDetails = {};
+      showToast(`Private access details are not ready: ${error.message}`, true);
+    }
+  }
   setSeo({
     title: `Admin | ${store.settings.name}`,
     description: "Owner dashboard for managing the BnB platform.",
@@ -546,6 +556,8 @@ async function renderAdmin(section) {
     rooms: adminRooms,
     services: adminServices,
     site: adminSite,
+    templates: adminWhatsappTemplates,
+    checkin: adminCheckin,
     bookings: adminBookings,
     calendar: adminCalendar,
     media: adminMedia,
@@ -563,6 +575,8 @@ async function renderAdmin(section) {
         <a href="/admin/bookings" data-link class="${section === "bookings" ? "active" : ""}">Bookings</a>
         <a href="/admin/calendar" data-link class="${section === "calendar" ? "active" : ""}">Calendar sync</a>
         <a href="/admin/site" data-link class="${section === "site" ? "active" : ""}">Site settings</a>
+        <a href="/admin/templates" data-link class="${section === "templates" ? "active" : ""}">WhatsApp templates</a>
+        <a href="/admin/checkin" data-link class="${section === "checkin" ? "active" : ""}">Check-in details</a>
         <a href="/admin/media" data-link class="${section === "media" ? "active" : ""}">Media</a>
         <a href="/admin/testimonials" data-link class="${section === "testimonials" ? "active" : ""}">Testimonials</a>
         <a href="/admin/inquiries" data-link class="${section === "inquiries" ? "active" : ""}">Inquiries</a>
@@ -773,6 +787,55 @@ function adminSite() {
   `;
 }
 
+function adminWhatsappTemplates() {
+  const templates = store.settings.whatsappTemplates || {};
+  return `
+    <div class="admin-head"><h2>WhatsApp templates</h2><p>Change the messages sent from booking, service and owner access actions without editing code.</p></div>
+    <section class="admin-panel">
+      <form data-whatsapp-templates-form class="admin-form">
+        <label class="full">Accommodation booking message <textarea name="booking" rows="8">${esc(templates.booking || "")}</textarea></label>
+        <label class="full">Service request message <textarea name="service" rows="7">${esc(templates.service || "")}</textarea></label>
+        <label class="full">Private access details message <textarea name="access" rows="10">${esc(templates.access || "")}</textarea></label>
+        <div class="copy-box full"><strong>Available placeholders</strong><p><code>{{shortName}}</code> <code>{{roomName}}</code> <code>{{serviceName}}</code> <code>{{startDate}}</code> <code>{{endDate}}</code> <code>{{guests}}</code> <code>{{totalCost}}</code> <code>{{guestName}}</code> <code>{{note}}</code> <code>{{items}}</code> <code>{{roomCode}}</code> <code>{{doorPass}}</code> <code>{{lockboxPassword}}</code> <code>{{wifiName}}</code> <code>{{wifiPassword}}</code> <code>{{additionalNotes}}</code></p></div>
+        <button class="button accent" type="submit">Save WhatsApp templates</button>
+      </form>
+    </section>
+  `;
+}
+
+function roomAccessDetailsFor(roomId) {
+  return store.roomAccessDetails?.[roomId] || { roomId, houseRules: [] };
+}
+
+function adminCheckin() {
+  const room = store.rooms[0];
+  const details = roomAccessDetailsFor(room?.id || "");
+  return `
+    <div class="admin-head"><h2>Check-in details</h2><p>Edit each room&apos;s arrival instructions and private credentials. These fields are protected from public Supabase reads.</p></div>
+    <section class="admin-panel">
+      <form data-checkin-form class="admin-form">
+        <label>Room <select name="roomId">${store.rooms.map((item) => `<option value="${esc(item.id)}" ${item.id === room?.id ? "selected" : ""}>${esc(item.name)}</option>`).join("")}</select></label>
+        <label>Property heading <input name="propertyName" value="${esc(details.propertyName || "")}" /></label>
+        <label>House to check in <input name="houseToCheckIn" value="${esc(details.houseToCheckIn || "")}" /></label>
+        <label class="full">Directions <textarea name="directions" rows="3">${esc(details.directions || "")}</textarea></label>
+        <label class="full">Lockbox instructions <textarea name="lockboxInstructions" rows="2">${esc(details.lockboxInstructions || "")}</textarea></label>
+        <label>Lockbox password <input name="lockboxPassword" autocomplete="off" value="${esc(details.lockboxPassword || "")}" /></label>
+        <label>Room code <input name="roomCode" autocomplete="off" value="${esc(details.roomCode || "")}" /></label>
+        <label>Door pass <input name="doorPass" autocomplete="off" value="${esc(details.doorPass || "")}" /></label>
+        <label>Wi-Fi name <input name="wifiName" value="${esc(details.wifiName || "")}" /></label>
+        <label>Wi-Fi password <input name="wifiPassword" autocomplete="off" value="${esc(details.wifiPassword || "")}" /></label>
+        <label>Check-out time <input name="checkOutTime" value="${esc(details.checkOutTime || store.settings.checkOut || "")}" /></label>
+        <label class="full">Check-out notes <textarea name="checkOutNotes" rows="3">${esc(details.checkOutNotes || "")}</textarea></label>
+        <label class="full">House rules, one per line <textarea name="houseRules" rows="5">${esc((details.houseRules || []).join("\n"))}</textarea></label>
+        <label class="full">Additional private notes <textarea name="additionalNotes" rows="3">${esc(details.additionalNotes || "")}</textarea></label>
+        <label class="full">Public check-in note <textarea name="publicInstructions" rows="3">${esc(details.publicInstructions || "")}</textarea></label>
+        <p class="muted full">Active lockbox passwords, room codes, door passes and Wi-Fi passwords are only sent through the owner&apos;s access action after a booking is confirmed.</p>
+        <button class="button accent" type="submit">Save check-in details</button>
+      </form>
+    </section>
+  `;
+}
+
 function adminBookings() {
   return `
     <div class="admin-head"><h2>Bookings and blocked dates</h2><p>Confirmed blocks stop duplicate bookings in the public calendar and in the Supabase database.</p></div>
@@ -781,6 +844,7 @@ function adminBookings() {
         <input type="hidden" name="id" />
         <label>Room <select name="roomId">${store.rooms.map((room) => `<option value="${esc(room.id)}">${esc(room.name)}</option>`).join("")}</select></label>
         <label>Guest/block label <input name="guestName" required /></label>
+        <label>Guest WhatsApp <input name="guestPhone" type="tel" placeholder="2547..." /></label>
         <label>Start date <input name="startDate" type="date" required /></label>
         <label>End date <input name="endDate" type="date" required /></label>
         <label>Status <select name="status"><option value="confirmed">confirmed / blocked</option><option value="cancelled">cancelled / open</option></select></label>
@@ -915,6 +979,8 @@ function bindAdmin(section) {
   if (section === "rooms") bindRoomAdmin();
   if (section === "services") bindServiceAdmin();
   if (section === "site") bindSiteAdmin();
+  if (section === "templates") bindWhatsappTemplatesAdmin();
+  if (section === "checkin") bindCheckinAdmin();
   if (section === "bookings") bindBookingAdmin();
   if (section === "calendar") bindCalendarAdmin();
   if (section === "media") bindMediaAdmin();
@@ -1026,6 +1092,49 @@ function bindSiteAdmin() {
   });
 }
 
+function bindWhatsappTemplatesAdmin() {
+  const form = app.querySelector("[data-whatsapp-templates-form]");
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const values = Object.fromEntries(new FormData(form));
+    await saveSettings({ ...store.settings, whatsappTemplates: values });
+    await reloadAdmin("templates", "WhatsApp templates saved.");
+  });
+}
+
+function bindCheckinAdmin() {
+  const form = app.querySelector("[data-checkin-form]");
+  const load = (roomId) => {
+    const details = roomAccessDetailsFor(roomId);
+    form.roomId.value = roomId;
+    form.propertyName.value = details.propertyName || "";
+    form.houseToCheckIn.value = details.houseToCheckIn || "";
+    form.directions.value = details.directions || "";
+    form.lockboxInstructions.value = details.lockboxInstructions || "";
+    form.lockboxPassword.value = details.lockboxPassword || "";
+    form.roomCode.value = details.roomCode || "";
+    form.doorPass.value = details.doorPass || "";
+    form.wifiName.value = details.wifiName || "";
+    form.wifiPassword.value = details.wifiPassword || "";
+    form.checkOutTime.value = details.checkOutTime || store.settings.checkOut || "";
+    form.checkOutNotes.value = details.checkOutNotes || "";
+    form.houseRules.value = (details.houseRules || []).join("\n");
+    form.additionalNotes.value = details.additionalNotes || "";
+    form.publicInstructions.value = details.publicInstructions || "";
+  };
+  form.roomId.addEventListener("change", () => load(form.roomId.value));
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const values = Object.fromEntries(new FormData(form));
+    const saved = await saveRoomAccessDetails({
+      ...values,
+      houseRules: splitLines(values.houseRules)
+    });
+    store.roomAccessDetails[values.roomId] = saved;
+    showToast("Check-in details saved.");
+  });
+}
+
 function bindBookingAdmin() {
   const form = app.querySelector("[data-booking-form]");
   app.querySelectorAll("[data-edit-booking]").forEach((button) => {
@@ -1046,6 +1155,23 @@ function bindBookingAdmin() {
       if (!confirm("Remove this blocked date range?")) return;
       await deleteBooking(button.dataset.deleteBooking);
       await reloadAdmin("bookings", "Booking block removed.");
+    });
+  });
+  app.querySelectorAll("[data-send-access]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const booking = store.bookings.find((item) => item.id === button.dataset.sendAccess);
+      const room = store.rooms.find((item) => item.id === booking?.roomId);
+      const details = roomAccessDetailsFor(booking?.roomId);
+      if (!booking || !room) return;
+      if (!booking.guestPhone) {
+        showToast("Add the guest phone number before sending access details.", true);
+        return;
+      }
+      if (!details.roomCode && !details.doorPass && !details.lockboxPassword && !details.wifiPassword) {
+        showToast("Save the room's private access details first.", true);
+        return;
+      }
+      openWhatsapp(booking.guestPhone, accessDetailsMessage({ room, guestName: booking.guestName, details, settings: store.settings }));
     });
   });
 }
@@ -1502,7 +1628,7 @@ function bookingTable() {
               <td>${esc(store.rooms.find((room) => room.id === booking.roomId)?.name || "Unknown room")}</td>
               <td>${esc(booking.guestName)}</td>
               <td>${esc(booking.startDate)} to ${esc(booking.endDate)}</td>
-              <td><button class="icon-button" data-edit-booking="${esc(booking.id)}">Edit</button><button class="icon-button danger" data-delete-booking="${esc(booking.id)}">Remove</button></td>
+              <td><button class="icon-button" data-edit-booking="${esc(booking.id)}">Edit</button><button class="icon-button" data-send-access="${esc(booking.id)}">Send access</button><button class="icon-button danger" data-delete-booking="${esc(booking.id)}">Remove</button></td>
             </tr>
           `).join("")}
         </tbody>
@@ -1571,6 +1697,7 @@ function fillBookingForm(booking, form) {
   form.id.value = booking.id || "";
   form.roomId.value = booking.roomId || "";
   form.guestName.value = booking.guestName || "";
+  form.guestPhone.value = booking.guestPhone || "";
   form.startDate.value = booking.startDate || "";
   form.endDate.value = booking.endDate || "";
   form.status.value = booking.status || "confirmed";

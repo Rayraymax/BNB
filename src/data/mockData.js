@@ -34,6 +34,11 @@ export const mockData = {
     paymentMethods: ["M-Pesa", "Visa / Mastercard", "Bank transfer", "Cash at check-in"],
     paymentNote: "Guests pay the owner directly. Confirm the final total and payment instructions on WhatsApp before arrival.",
     taxNote: "Rates are shown in Kenyan shillings. Confirm applicable taxes or fees with the owner before payment.",
+    whatsappTemplates: {
+      booking: "Hello {{shortName}},\nI would like to book {{roomName}}.\nDates: {{startDate}} to {{endDate}}\nGuests: {{guests}}\nEstimated total: KSh {{totalCost}}\nName: {{guestName}}\nNote: {{note}}\nPlease confirm availability and total price.",
+      service: "Hello {{shortName}},\nI would like to order: {{serviceName}}.\nKindly share your current menu and pricing.",
+      access: "Hello {{guestName}},\nHere are your private access details for {{roomName}}:\nRoom: {{roomCode}}\nDoor pass: {{doorPass}}\nLock box password: {{lockboxPassword}}\nWiFi name: {{wifiName}}\nWiFi password: {{wifiPassword}}\n{{additionalNotes}}"
+    },
     socials: {
       instagram: "https://instagram.com/",
       facebook: "https://facebook.com/"
@@ -360,6 +365,52 @@ export const mockData = {
     }
   ],
   calendarSyncs: [],
+  roomAccessDetails: {
+    "room-701": {
+      roomId: "room-701",
+      propertyName: "TSAVO APARTMENTS CHECK IN DETAILS",
+      houseToCheckIn: "Black Gate",
+      directions: "3rd floor, the 1st house on your right hand from the stairs.",
+      lockboxInstructions: "Keys are in the lock box.",
+      lockboxPassword: "2042",
+      roomCode: "RS4:C701",
+      doorPass: "2024",
+      wifiName: "Jay Homes",
+      wifiPassword: "Jay@2026",
+      checkOutTime: "10.00 AM",
+      checkOutNotes: "Extension past check-out time attracts charges.",
+      houseRules: [
+        "When checking out, kindly ensure everything is switched off.",
+        "Return the key in the lockbox.",
+        "You are responsible for any damage caused.",
+        "Enjoy your stay."
+      ],
+      additionalNotes: "",
+      publicInstructions: "Self check-in instructions and active access credentials are shared privately after confirmation."
+    },
+    "room-739": {
+      roomId: "room-739",
+      propertyName: "POYLVIEW ESTATE CHECK IN DETAILS",
+      houseToCheckIn: "Black Gate",
+      directions: "3rd floor, the 1st house on your right hand from the stairs.",
+      lockboxInstructions: "Keys are in the lock box.",
+      lockboxPassword: "",
+      roomCode: "RS4:C739",
+      doorPass: "",
+      wifiName: "Jay Homes",
+      wifiPassword: "",
+      checkOutTime: "10.00 AM",
+      checkOutNotes: "Extension past check-out time attracts charges.",
+      houseRules: [
+        "When checking out, kindly ensure everything is switched off.",
+        "Return the key in the lockbox.",
+        "You are responsible for any damage caused.",
+        "Enjoy your stay."
+      ],
+      additionalNotes: "",
+      publicInstructions: "Self check-in instructions and active access credentials are shared privately after confirmation."
+    }
+  },
   testimonials: [
     {
       id: "testimonial-mercy",
