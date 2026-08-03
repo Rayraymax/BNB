@@ -59,7 +59,7 @@ After Supabase is connected, do normal management inside the dashboard:
 - `/admin/inquiries`: update status or delete guest contact/service requests
 - `/admin/calendar`: copy website `.ics` feeds, paste Booking.com export feeds per room, pause/delete feeds and view last-sync errors
 - `/admin/templates`: edit accommodation booking, service request and private access WhatsApp templates using placeholders
-- `/admin/checkin`: edit per-room directions, lockbox details, room codes, door passes, Wi-Fi credentials, checkout notes and house rules
+- `/admin/checkin`: edit per-room directions, lockbox details, phase, Wi-Fi credentials, check-in/check-out times, notes and house rules
 
 The main manual configuration file is:
 
@@ -83,4 +83,4 @@ https://yourdomain.com/calendar.ics?room=ROOM_ID
 
 Paste Booking.com's exported `.ics` URL into the matching room in the same admin page. Netlify runs `sync-calendars` every 15 minutes and imports external events as `booking.com` bookings. Set the `SUPABASE_SERVICE_ROLE_KEY` environment variable in Netlify so the scheduled function can read calendar feeds and update bookings; never expose this key in `src/config.js` or browser code.
 
-Private check-in credentials are stored in the admin-only `room_access_details` table. Add a guest WhatsApp number to a confirmed booking, then use `Send access` in `/admin/bookings` to open a pre-filled private access message for that guest. Run the updated `supabase/schema.sql` in the Supabase SQL Editor before using these admin pages in production.
+Private check-in credentials are stored in the admin-only `room_access_details` table. Add a guest WhatsApp number to a confirmed booking, then use `Send Check-in Details` in `/admin/bookings` to open a pre-filled private access message for that guest. Run the updated `supabase/schema.sql` in the Supabase SQL Editor before using these admin pages in production.

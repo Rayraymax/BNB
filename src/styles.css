@@ -1519,6 +1519,55 @@ textarea {
   grid-column: 1 / -1;
 }
 
+.checkin-card {
+  display: grid;
+  gap: 1rem;
+  padding: 1.15rem;
+  background: var(--cream, #fffdf8);
+  border: 1px solid var(--line);
+}
+
+.checkin-card h3 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0;
+}
+
+.checkin-card .admin-form {
+  margin: 0;
+}
+
+.rule-checklist {
+  display: grid;
+  gap: 0.55rem;
+  margin-top: 0.65rem;
+  padding: 0.8rem;
+  background: var(--white);
+  border: 1px solid var(--line);
+}
+
+.checkin-preview {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.checkin-preview h3 {
+  margin: 0;
+}
+
+.checkin-preview pre {
+  margin: 0;
+  padding: 1rem;
+  min-height: 12rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: #1b1714;
+  color: #fffaf0;
+  border-radius: var(--radius);
+  font: 0.95rem/1.6 ui-monospace, SFMono-Regular, Consolas, monospace;
+}
+
 .responsive-table {
   overflow-x: auto;
 }
@@ -1873,5 +1922,9 @@ th {
     background:
       linear-gradient(90deg, rgba(255, 253, 248, 0.96), rgba(255, 253, 248, 0.82)),
       url("/assets/uploads/admin-dashboard-reference.jpg") right bottom / auto 65% no-repeat;
+  }
+
+  .checkin-card .admin-form {
+    grid-template-columns: 1fr;
   }
 }

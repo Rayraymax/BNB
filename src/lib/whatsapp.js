@@ -25,12 +25,19 @@ const defaultTemplates = {
   ].join("\n"),
   access: [
     "Hello {{guestName}},",
-    "Here are your private access details for {{roomName}}:",
-    "Room: {{roomCode}}",
-    "Door pass: {{doorPass}}",
+    "Your booking is confirmed.",
+    "{{propertyName}}",
+    "House: {{houseToCheckIn}}",
+    "Directions: {{directions}}",
+    "{{lockboxInstructions}}",
     "Lock box password: {{lockboxPassword}}",
+    "Phase: {{phase}}",
     "WiFi name: {{wifiName}}",
     "WiFi password: {{wifiPassword}}",
+    "Check-in: {{checkInTime}}",
+    "Check-out: {{checkOutTime}}",
+    "{{checkOutNotes}}",
+    "House rules:\n{{houseRules}}",
     "{{additionalNotes}}"
   ].join("\n")
 };
@@ -64,14 +71,25 @@ export function serviceOrderMessage({ service, settings, selectedItems, guestNam
 }
 
 export function accessDetailsMessage({ room, guestName, details, settings }) {
-  return renderWhatsappTemplate(settings.whatsappTemplates?.access || defaultTemplates.access, {
+  const template = String(settings.whatsappTemplates?.access || defaultTemplates.access)
+    .split(/\r?\n/)
+    .filter((line) => !/{{\s*(doorPass|roomCode)\s*}}/i.test(line))
+    .join("\n");
+  return renderWhatsappTemplate(template, {
     guestName: guestName || "there",
     roomName: room?.name || "your room",
-    roomCode: details.roomCode || "",
-    doorPass: details.doorPass || "",
+    propertyName: details.propertyName || room?.name || "Your stay",
+    houseToCheckIn: details.houseToCheckIn || "",
+    directions: details.directions || "",
+    lockboxInstructions: details.lockboxInstructions || "Keys are in the lockbox.",
     lockboxPassword: details.lockboxPassword || "",
+    phase: details.phase || "",
     wifiName: details.wifiName || "",
     wifiPassword: details.wifiPassword || "",
+    checkInTime: details.checkInTime || "",
+    checkOutTime: details.checkOutTime || "",
+    checkOutNotes: details.checkOutNotes || "",
+    houseRules: (details.houseRules || []).join("\n"),
     additionalNotes: details.additionalNotes || ""
   });
 }

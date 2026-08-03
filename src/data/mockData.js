@@ -37,7 +37,7 @@ export const mockData = {
     whatsappTemplates: {
       booking: "Hello {{shortName}},\nI would like to book {{roomName}}.\nDates: {{startDate}} to {{endDate}}\nGuests: {{guests}}\nEstimated total: KSh {{totalCost}}\nName: {{guestName}}\nNote: {{note}}\nPlease confirm availability and total price.",
       service: "Hello {{shortName}},\nI would like to order: {{serviceName}}.\nKindly share your current menu and pricing.",
-      access: "Hello {{guestName}},\nHere are your private access details for {{roomName}}:\nRoom: {{roomCode}}\nDoor pass: {{doorPass}}\nLock box password: {{lockboxPassword}}\nWiFi name: {{wifiName}}\nWiFi password: {{wifiPassword}}\n{{additionalNotes}}"
+      access: "Hello {{guestName}},\nYour booking is confirmed.\n{{propertyName}}\nHouse: {{houseToCheckIn}}\nDirections: {{directions}}\n{{lockboxInstructions}}\nLock box password: {{lockboxPassword}}\nPhase: {{phase}}\nWiFi name: {{wifiName}}\nWiFi password: {{wifiPassword}}\nCheck-in: {{checkInTime}}\nCheck-out: {{checkOutTime}}\n{{checkOutNotes}}\nHouse rules:\n{{houseRules}}\n{{additionalNotes}}"
     },
     socials: {
       instagram: "https://instagram.com/",
@@ -373,10 +373,10 @@ export const mockData = {
       directions: "3rd floor, the 1st house on your right hand from the stairs.",
       lockboxInstructions: "Keys are in the lock box.",
       lockboxPassword: "2042",
-      roomCode: "RS4:C701",
-      doorPass: "2024",
+      phase: "Phase 4",
       wifiName: "Jay Homes",
       wifiPassword: "Jay@2026",
+      checkInTime: "2:00 PM",
       checkOutTime: "10.00 AM",
       checkOutNotes: "Extension past check-out time attracts charges.",
       houseRules: [
@@ -395,10 +395,10 @@ export const mockData = {
       directions: "3rd floor, the 1st house on your right hand from the stairs.",
       lockboxInstructions: "Keys are in the lock box.",
       lockboxPassword: "",
-      roomCode: "RS4:C739",
-      doorPass: "",
+      phase: "Phase 4",
       wifiName: "Jay Homes",
       wifiPassword: "",
+      checkInTime: "2:00 PM",
       checkOutTime: "10.00 AM",
       checkOutNotes: "Extension past check-out time attracts charges.",
       houseRules: [

@@ -1,5 +1,6 @@
 import { SUPABASE_ANON_KEY, SUPABASE_URL, LOCAL_ADMIN } from "../config.js";
 import { mockData } from "../data/mockData.js";
+import { defaultTemplates } from "./whatsapp.js";
 
 const STORAGE_KEY = "bnb-platform-local-data";
 const SESSION_KEY = "bnb-platform-local-session";
@@ -19,12 +20,20 @@ function localData() {
   }
   const data = JSON.parse(saved);
   data.settings = { ...clone(mockData.settings), ...(data.settings || {}) };
+  if (data.settings.whatsappTemplates?.access && /{{\s*(doorPass|roomCode)\s*}}/i.test(data.settings.whatsappTemplates.access)) {
+    data.settings.whatsappTemplates.access = defaultTemplates.access;
+  }
   data.testimonials = (data.testimonials || clone(mockData.testimonials)).map((item, index) => ({
     ...item,
     id: item.id || `testimonial-local-${index + 1}`
   }));
   data.calendarSyncs = data.calendarSyncs || [];
-  data.roomAccessDetails = data.roomAccessDetails || clone(mockData.roomAccessDetails || {});
+  data.roomAccessDetails = Object.fromEntries(Object.entries(data.roomAccessDetails || clone(mockData.roomAccessDetails || {})).map(([roomId, details]) => [roomId, {
+    ...details,
+    roomId,
+    phase: details.phase || details.roomCode || "",
+    checkInTime: details.checkInTime || ""
+  }]));
   const fixAssetPath = (value) => String(value || "").replaceAll("/public/assets/", "/assets/");
   data.settings.coverImage = fixAssetPath(data.settings.coverImage);
   data.settings.coverVideo = fixAssetPath(data.settings.coverVideo);
@@ -70,6 +79,10 @@ async function supabase() {
 
 function normalizeSettings(row) {
   if (!row) return null;
+  const whatsappTemplates = row.whatsapp_templates || row.whatsappTemplates || {};
+  if (whatsappTemplates.access && /{{\s*(doorPass|roomCode)\s*}}/i.test(whatsappTemplates.access)) {
+    whatsappTemplates.access = defaultTemplates.access;
+  }
   return {
     ...row,
     whyChoose: row.why_choose || row.whyChoose || [],
@@ -92,7 +105,7 @@ function normalizeSettings(row) {
     paymentMethods: row.payment_methods || row.paymentMethods || [],
     paymentNote: row.payment_note || row.paymentNote || "",
     taxNote: row.tax_note || row.taxNote || "",
-    whatsappTemplates: row.whatsapp_templates || row.whatsappTemplates || {}
+    whatsappTemplates
   };
 }
 
@@ -490,10 +503,10 @@ function normalizeRoomAccessDetails(row) {
     directions: row.directions || "",
     lockboxInstructions: row.lockbox_instructions || "",
     lockboxPassword: row.lockbox_password || "",
-    roomCode: row.room_code || "",
-    doorPass: row.door_pass || "",
+    phase: row.phase || row.room_phase || row.roomCode || "",
     wifiName: row.wifi_name || "",
     wifiPassword: row.wifi_password || "",
+    checkInTime: row.check_in_time || "",
     checkOutTime: row.check_out_time || "",
     checkOutNotes: row.check_out_notes || "",
     houseRules: row.house_rules || [],
@@ -517,10 +530,10 @@ export async function saveRoomAccessDetails(details) {
     directions: details.directions || "",
     lockbox_instructions: details.lockboxInstructions || "",
     lockbox_password: details.lockboxPassword || "",
-    room_code: details.roomCode || "",
-    door_pass: details.doorPass || "",
+    phase: details.phase || "",
     wifi_name: details.wifiName || "",
     wifi_password: details.wifiPassword || "",
+    check_in_time: details.checkInTime || "",
     check_out_time: details.checkOutTime || "",
     check_out_notes: details.checkOutNotes || "",
     house_rules: details.houseRules || [],

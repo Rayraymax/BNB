@@ -796,7 +796,7 @@ function adminWhatsappTemplates() {
         <label class="full">Accommodation booking message <textarea name="booking" rows="8">${esc(templates.booking || "")}</textarea></label>
         <label class="full">Service request message <textarea name="service" rows="7">${esc(templates.service || "")}</textarea></label>
         <label class="full">Private access details message <textarea name="access" rows="10">${esc(templates.access || "")}</textarea></label>
-        <div class="copy-box full"><strong>Available placeholders</strong><p><code>{{shortName}}</code> <code>{{roomName}}</code> <code>{{serviceName}}</code> <code>{{startDate}}</code> <code>{{endDate}}</code> <code>{{guests}}</code> <code>{{totalCost}}</code> <code>{{guestName}}</code> <code>{{note}}</code> <code>{{items}}</code> <code>{{roomCode}}</code> <code>{{doorPass}}</code> <code>{{lockboxPassword}}</code> <code>{{wifiName}}</code> <code>{{wifiPassword}}</code> <code>{{additionalNotes}}</code></p></div>
+        <div class="copy-box full"><strong>Available placeholders</strong><p><code>{{shortName}}</code> <code>{{roomName}}</code> <code>{{serviceName}}</code> <code>{{startDate}}</code> <code>{{endDate}}</code> <code>{{guests}}</code> <code>{{totalCost}}</code> <code>{{guestName}}</code> <code>{{note}}</code> <code>{{items}}</code> <code>{{propertyName}}</code> <code>{{houseToCheckIn}}</code> <code>{{directions}}</code> <code>{{lockboxInstructions}}</code> <code>{{lockboxPassword}}</code> <code>{{phase}}</code> <code>{{wifiName}}</code> <code>{{wifiPassword}}</code> <code>{{checkInTime}}</code> <code>{{checkOutTime}}</code> <code>{{checkOutNotes}}</code> <code>{{houseRules}}</code> <code>{{additionalNotes}}</code></p></div>
         <button class="button accent" type="submit">Save WhatsApp templates</button>
       </form>
     </section>
@@ -810,27 +810,27 @@ function roomAccessDetailsFor(roomId) {
 function adminCheckin() {
   const room = store.rooms[0];
   const details = roomAccessDetailsFor(room?.id || "");
+  const standardRules = [
+    "No smoking inside the apartment",
+    "No parties or events",
+    "No pets",
+    "Quiet hours from 10:00 PM to 7:00 AM",
+    "Visitors allowed"
+  ];
+  const selectedRules = new Set(details.houseRules || []);
+  const customRules = (details.houseRules || []).filter((rule) => !standardRules.includes(rule));
+  const preview = accessDetailsMessage({ room, guestName: "Guest", details, settings: store.settings });
   return `
     <div class="admin-head"><h2>Check-in details</h2><p>Edit each room&apos;s arrival instructions and private credentials. These fields are protected from public Supabase reads.</p></div>
     <section class="admin-panel">
       <form data-checkin-form class="admin-form">
-        <label>Room <select name="roomId">${store.rooms.map((item) => `<option value="${esc(item.id)}" ${item.id === room?.id ? "selected" : ""}>${esc(item.name)}</option>`).join("")}</select></label>
-        <label>Property heading <input name="propertyName" value="${esc(details.propertyName || "")}" /></label>
-        <label>House to check in <input name="houseToCheckIn" value="${esc(details.houseToCheckIn || "")}" /></label>
-        <label class="full">Directions <textarea name="directions" rows="3">${esc(details.directions || "")}</textarea></label>
-        <label class="full">Lockbox instructions <textarea name="lockboxInstructions" rows="2">${esc(details.lockboxInstructions || "")}</textarea></label>
-        <label>Lockbox password <input name="lockboxPassword" autocomplete="off" value="${esc(details.lockboxPassword || "")}" /></label>
-        <label>Room code <input name="roomCode" autocomplete="off" value="${esc(details.roomCode || "")}" /></label>
-        <label>Door pass <input name="doorPass" autocomplete="off" value="${esc(details.doorPass || "")}" /></label>
-        <label>Wi-Fi name <input name="wifiName" value="${esc(details.wifiName || "")}" /></label>
-        <label>Wi-Fi password <input name="wifiPassword" autocomplete="off" value="${esc(details.wifiPassword || "")}" /></label>
-        <label>Check-out time <input name="checkOutTime" value="${esc(details.checkOutTime || store.settings.checkOut || "")}" /></label>
-        <label class="full">Check-out notes <textarea name="checkOutNotes" rows="3">${esc(details.checkOutNotes || "")}</textarea></label>
-        <label class="full">House rules, one per line <textarea name="houseRules" rows="5">${esc((details.houseRules || []).join("\n"))}</textarea></label>
-        <label class="full">Additional private notes <textarea name="additionalNotes" rows="3">${esc(details.additionalNotes || "")}</textarea></label>
-        <label class="full">Public check-in note <textarea name="publicInstructions" rows="3">${esc(details.publicInstructions || "")}</textarea></label>
-        <p class="muted full">Active lockbox passwords, room codes, door passes and Wi-Fi passwords are only sent through the owner&apos;s access action after a booking is confirmed.</p>
-        <button class="button accent" type="submit">Save check-in details</button>
+        <section class="checkin-card full"><h3>Property Information</h3><div class="admin-form"><label>Room <select name="roomId">${store.rooms.map((item) => `<option value="${esc(item.id)}" ${item.id === room?.id ? "selected" : ""}>${esc(item.name)}</option>`).join("")}</select></label><label>Property heading <input name="propertyName" value="${esc(details.propertyName || "")}" /></label><label>House to check in <input name="houseToCheckIn" value="${esc(details.houseToCheckIn || "")}" /></label><label class="full">Directions <textarea name="directions" rows="3">${esc(details.directions || "")}</textarea></label></div></section>
+        <section class="checkin-card full"><h3>Access Details <span>🔒</span></h3><div class="admin-form"><label>Lockbox instructions <textarea name="lockboxInstructions" rows="2">${esc(details.lockboxInstructions || "Keys are in the lockbox.")}</textarea></label><label>Lockbox password <input name="lockboxPassword" autocomplete="off" value="${esc(details.lockboxPassword || "")}" /></label><label>Phase <input name="phase" autocomplete="off" value="${esc(details.phase || "")}" /></label><label>Wi-Fi name <input name="wifiName" value="${esc(details.wifiName || "")}" /></label><label>Wi-Fi password <input name="wifiPassword" autocomplete="off" value="${esc(details.wifiPassword || "")}" /></label></div></section>
+        <section class="checkin-card full"><h3>Guest Information</h3><div class="admin-form"><label>Check-in time <input name="checkInTime" value="${esc(details.checkInTime || "")}" placeholder="2:00 PM" /></label><label>Check-out time <input name="checkOutTime" value="${esc(details.checkOutTime || store.settings.checkOut || "")}" placeholder="10:00 AM" /></label><label class="full">Check-out notes <textarea name="checkOutNotes" rows="3">${esc(details.checkOutNotes || "")}</textarea></label><div class="full"><strong>House rules</strong><div class="rule-checklist">${standardRules.map((rule) => `<label class="checkbox-label"><input type="checkbox" name="houseRule" value="${esc(rule)}" ${selectedRules.has(rule) ? "checked" : ""} /> ${esc(rule)}</label>`).join("")}</div><label class="full">Custom rules, one per line <textarea name="customRules" rows="3">${esc(customRules.join("\n"))}</textarea></label></div></div></section>
+        <section class="checkin-card full"><h3>Internal Notes</h3><div class="admin-form"><label class="full">Additional private notes <textarea name="additionalNotes" rows="3">${esc(details.additionalNotes || "")}</textarea></label><label class="full">Public check-in note <textarea name="publicInstructions" rows="3">${esc(details.publicInstructions || "")}</textarea></label></div></section>
+        <p class="muted full">The guest receives the lockbox code to collect the keys. No door pass or room code is used. Access details are sent only from the owner&apos;s booking action.</p>
+        <div class="button-row full"><button class="button accent" type="submit">Save check-in details</button><button class="button ghost" type="button" data-checkin-preview>Generate Message Preview</button></div>
+        <div class="checkin-preview full"><h3>Guest message preview</h3><pre data-checkin-preview-output>${esc(preview)}</pre></div>
       </form>
     </section>
   `;
@@ -1104,31 +1104,54 @@ function bindWhatsappTemplatesAdmin() {
 
 function bindCheckinAdmin() {
   const form = app.querySelector("[data-checkin-form]");
+  const standardRules = [
+    "No smoking inside the apartment",
+    "No parties or events",
+    "No pets",
+    "Quiet hours from 10:00 PM to 7:00 AM",
+    "Visitors allowed"
+  ];
   const load = (roomId) => {
     const details = roomAccessDetailsFor(roomId);
     form.roomId.value = roomId;
     form.propertyName.value = details.propertyName || "";
     form.houseToCheckIn.value = details.houseToCheckIn || "";
     form.directions.value = details.directions || "";
-    form.lockboxInstructions.value = details.lockboxInstructions || "";
+    form.lockboxInstructions.value = details.lockboxInstructions || "Keys are in the lockbox.";
     form.lockboxPassword.value = details.lockboxPassword || "";
-    form.roomCode.value = details.roomCode || "";
-    form.doorPass.value = details.doorPass || "";
+    form.phase.value = details.phase || "";
     form.wifiName.value = details.wifiName || "";
     form.wifiPassword.value = details.wifiPassword || "";
+    form.checkInTime.value = details.checkInTime || "";
     form.checkOutTime.value = details.checkOutTime || store.settings.checkOut || "";
     form.checkOutNotes.value = details.checkOutNotes || "";
-    form.houseRules.value = (details.houseRules || []).join("\n");
+    form.querySelectorAll('input[name="houseRule"]').forEach((input) => {
+      input.checked = (details.houseRules || []).includes(input.value);
+    });
+    form.customRules.value = (details.houseRules || []).filter((rule) => !standardRules.includes(rule)).join("\n");
     form.additionalNotes.value = details.additionalNotes || "";
     form.publicInstructions.value = details.publicInstructions || "";
   };
   form.roomId.addEventListener("change", () => load(form.roomId.value));
+  const formDetails = () => {
+    const values = Object.fromEntries(new FormData(form));
+    values.houseRules = [
+      ...[...form.querySelectorAll('input[name="houseRule"]:checked')].map((input) => input.value),
+      ...splitLines(values.customRules)
+    ];
+    return values;
+  };
+  app.querySelector("[data-checkin-preview]").addEventListener("click", () => {
+    const values = formDetails();
+    const room = store.rooms.find((item) => item.id === values.roomId);
+    app.querySelector("[data-checkin-preview-output]").textContent = accessDetailsMessage({ room, guestName: "Guest", details: values, settings: store.settings });
+  });
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
-    const values = Object.fromEntries(new FormData(form));
+    const values = formDetails();
     const saved = await saveRoomAccessDetails({
       ...values,
-      houseRules: splitLines(values.houseRules)
+      houseRules: values.houseRules
     });
     store.roomAccessDetails[values.roomId] = saved;
     showToast("Check-in details saved.");
@@ -1167,7 +1190,7 @@ function bindBookingAdmin() {
         showToast("Add the guest phone number before sending access details.", true);
         return;
       }
-      if (!details.roomCode && !details.doorPass && !details.lockboxPassword && !details.wifiPassword) {
+      if (!details.lockboxPassword) {
         showToast("Save the room's private access details first.", true);
         return;
       }
@@ -1628,7 +1651,7 @@ function bookingTable() {
               <td>${esc(store.rooms.find((room) => room.id === booking.roomId)?.name || "Unknown room")}</td>
               <td>${esc(booking.guestName)}</td>
               <td>${esc(booking.startDate)} to ${esc(booking.endDate)}</td>
-              <td><button class="icon-button" data-edit-booking="${esc(booking.id)}">Edit</button><button class="icon-button" data-send-access="${esc(booking.id)}">Send access</button><button class="icon-button danger" data-delete-booking="${esc(booking.id)}">Remove</button></td>
+              <td><button class="icon-button" data-edit-booking="${esc(booking.id)}">Edit</button><button class="icon-button" data-send-access="${esc(booking.id)}">Send Check-in Details</button><button class="icon-button danger" data-delete-booking="${esc(booking.id)}">Remove</button></td>
             </tr>
           `).join("")}
         </tbody>

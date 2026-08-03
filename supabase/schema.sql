@@ -178,10 +178,10 @@ create table if not exists public.room_access_details (
   directions text not null default '',
   lockbox_instructions text not null default '',
   lockbox_password text not null default '',
-  room_code text not null default '',
-  door_pass text not null default '',
+  phase text not null default '',
   wifi_name text not null default '',
   wifi_password text not null default '',
+  check_in_time text not null default '',
   check_out_time text not null default '',
   check_out_notes text not null default '',
   house_rules jsonb not null default '[]'::jsonb,
@@ -203,6 +203,8 @@ alter table public.site_settings add column if not exists payment_methods jsonb 
 alter table public.site_settings add column if not exists payment_note text;
 alter table public.site_settings add column if not exists tax_note text;
 alter table public.site_settings add column if not exists whatsapp_templates jsonb not null default '{}'::jsonb;
+alter table public.room_access_details add column if not exists phase text not null default '';
+alter table public.room_access_details add column if not exists check_in_time text not null default '';
 alter table public.rooms add column if not exists cover_video text;
 alter table public.bookings add column if not exists external_source text;
 alter table public.bookings add column if not exists external_uid text;

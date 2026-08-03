@@ -32,7 +32,7 @@ insert into public.site_settings (
   '["M-Pesa","Visa / Mastercard","Bank transfer","Cash at check-in"]',
   'Guests pay the owner directly. Confirm the final total and payment instructions on WhatsApp before arrival.',
   'Rates are shown in Kenyan shillings. Confirm applicable taxes or fees with the owner before payment.',
-  '{"booking":"Hello {{shortName}},\nI would like to book {{roomName}}.\nDates: {{startDate}} to {{endDate}}\nGuests: {{guests}}\nEstimated total: KSh {{totalCost}}\nName: {{guestName}}\nNote: {{note}}\nPlease confirm availability and total price.","service":"Hello {{shortName}},\nI would like to order: {{serviceName}}.\nKindly share your current menu and pricing.","access":"Hello {{guestName}},\nHere are your private access details for {{roomName}}:\nRoom: {{roomCode}}\nDoor pass: {{doorPass}}\nLock box password: {{lockboxPassword}}\nWiFi name: {{wifiName}}\nWiFi password: {{wifiPassword}}\n{{additionalNotes}}"}',
+  '{"booking":"Hello {{shortName}},\nI would like to book {{roomName}}.\nDates: {{startDate}} to {{endDate}}\nGuests: {{guests}}\nEstimated total: KSh {{totalCost}}\nName: {{guestName}}\nNote: {{note}}\nPlease confirm availability and total price.","service":"Hello {{shortName}},\nI would like to order: {{serviceName}}.\nKindly share your current menu and pricing.","access":"Hello {{guestName}},\nYour booking is confirmed.\n{{propertyName}}\nHouse: {{houseToCheckIn}}\nDirections: {{directions}}\n{{lockboxInstructions}}\nLock box password: {{lockboxPassword}}\nPhase: {{phase}}\nWiFi name: {{wifiName}}\nWiFi password: {{wifiPassword}}\nCheck-in: {{checkInTime}}\nCheck-out: {{checkOutTime}}\n{{checkOutNotes}}\nHouse rules:\n{{houseRules}}\n{{additionalNotes}}"}',
   '{"instagram":"https://instagram.com/","facebook":"https://facebook.com/"}',
   '[
     {"icon":"bed","title":"Beautiful Rooms","text":"Modern interiors, premium bedding and apartment comforts designed for rest."},
@@ -141,13 +141,13 @@ on conflict (id) do update set
 
 insert into public.room_access_details (
   room_id, property_name, house_to_check_in, directions, lockbox_instructions, lockbox_password,
-  room_code, door_pass, wifi_name, wifi_password, check_out_time, check_out_notes, house_rules, public_instructions
+  phase, wifi_name, wifi_password, check_in_time, check_out_time, check_out_notes, house_rules, public_instructions
 ) values
 (
   '11111111-1111-1111-1111-111111111111',
   'TSAVO APARTMENTS CHECK IN DETAILS', 'Black Gate',
   '3rd floor, the 1st house on your right hand from the stairs.', 'Keys are in the lock box.', '2042',
-  'RS4:C701', '2024', 'Jay Homes', 'Jay@2026', '10.00 AM',
+  'Phase 4', 'Jay Homes', 'Jay@2026', '2:00 PM', '10.00 AM',
   'Extension past check-out time attracts charges.',
   '["When checking out, kindly ensure everything is switched off.","Return the key in the lockbox.","You are responsible for any damage caused.","Enjoy your stay."]',
   'Self check-in instructions and active access credentials are shared privately after confirmation.'
@@ -156,7 +156,7 @@ insert into public.room_access_details (
   '22222222-2222-2222-2222-222222222222',
   'POYLVIEW ESTATE CHECK IN DETAILS', 'Black Gate',
   '3rd floor, the 1st house on your right hand from the stairs.', 'Keys are in the lock box.', '',
-  'RS4:C739', '', 'Jay Homes', '', '10.00 AM',
+  'Phase 4', 'Jay Homes', '', '2:00 PM', '10.00 AM',
   'Extension past check-out time attracts charges.',
   '["When checking out, kindly ensure everything is switched off.","Return the key in the lockbox.","You are responsible for any damage caused.","Enjoy your stay."]',
   'Self check-in instructions and active access credentials are shared privately after confirmation.'
@@ -167,10 +167,10 @@ on conflict (room_id) do update set
   directions = excluded.directions,
   lockbox_instructions = excluded.lockbox_instructions,
   lockbox_password = excluded.lockbox_password,
-  room_code = excluded.room_code,
-  door_pass = excluded.door_pass,
+  phase = excluded.phase,
   wifi_name = excluded.wifi_name,
   wifi_password = excluded.wifi_password,
+  check_in_time = excluded.check_in_time,
   check_out_time = excluded.check_out_time,
   check_out_notes = excluded.check_out_notes,
   house_rules = excluded.house_rules,
