@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "node server.js",
     "start": "node server.js",
+    "sync-calendars": "node scripts/sync-calendars.js",
     "check": "node --check src/app.js && node --check src/lib/db.js && node --check src/lib/seo.js && node --check src/lib/whatsapp.js && node --check server.js"
   }
 }

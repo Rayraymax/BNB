@@ -359,6 +359,7 @@ export const mockData = {
       source: "mock"
     }
   ],
+  calendarSyncs: [],
   testimonials: [
     {
       id: "testimonial-mercy",

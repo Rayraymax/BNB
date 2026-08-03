@@ -1,0 +1,18 @@
+import { syncAllCalendars } from "../../src/lib/ical.js";
+
+export const config = { schedule: "*/15 * * * *" };
+
+export default async () => {
+  try {
+    const results = await syncAllCalendars();
+    return new Response(JSON.stringify({ results }), {
+      status: 200,
+      headers: { "Content-Type": "application/json; charset=utf-8" }
+    });
+  } catch (error) {
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { "Content-Type": "application/json; charset=utf-8" }
+    });
+  }
+};

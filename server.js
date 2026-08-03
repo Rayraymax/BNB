@@ -1,6 +1,7 @@
 import { createServer } from "node:http";
 import { createReadStream, existsSync, readFileSync, statSync } from "node:fs";
 import { extname, join, normalize, sep } from "node:path";
+import { buildCalendarFeed, syncAllCalendars } from "./src/lib/ical.js";
 
 const root = process.cwd();
 const port = Number(process.env.PORT || 5173);
@@ -85,7 +86,45 @@ function renderShell(pathname) {
     .replace(/(<link\s+rel="canonical"\s+href=")[^"]*("\s*\/>)/, `$1${htmlEscape(meta.url)}$2`);
 }
 
-createServer((req, res) => {
+createServer(async (req, res) => {
+  const requestUrl = new URL(req.url || "/", "http://localhost");
+
+  if (requestUrl.pathname === "/calendar.ics" && (req.method === "GET" || req.method === "HEAD")) {
+    try {
+      const feed = await buildCalendarFeed({ roomKey: requestUrl.searchParams.get("room") || "" });
+      res.writeHead(200, {
+        "Content-Type": "text/calendar; charset=utf-8",
+        "Content-Disposition": "inline; filename=alkey-homes-calendar.ics",
+        "Cache-Control": "no-store"
+      });
+      if (req.method !== "HEAD") res.end(feed);
+      else res.end();
+    } catch (error) {
+      res.writeHead(500, { "Content-Type": "text/plain; charset=utf-8" });
+      res.end(`Calendar export failed: ${error.message}`);
+    }
+    return;
+  }
+
+  if (requestUrl.pathname === "/api/calendar-sync" && (req.method === "POST" || req.method === "GET")) {
+    const expectedSecret = process.env.CALENDAR_SYNC_SECRET || "";
+    const suppliedSecret = req.headers["x-calendar-sync-secret"] || requestUrl.searchParams.get("secret") || "";
+    if (expectedSecret && suppliedSecret !== expectedSecret) {
+      res.writeHead(401, { "Content-Type": "application/json; charset=utf-8" });
+      res.end(JSON.stringify({ error: "Unauthorized calendar sync request." }));
+      return;
+    }
+    try {
+      const results = await syncAllCalendars({ syncId: requestUrl.searchParams.get("syncId") || "" });
+      res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+      res.end(JSON.stringify({ results }));
+    } catch (error) {
+      res.writeHead(500, { "Content-Type": "application/json; charset=utf-8" });
+      res.end(JSON.stringify({ error: error.message }));
+    }
+    return;
+  }
+
   const requested = resolveWithinRoot(req.url || "/");
   const looksLikeAsset = /\.[a-zA-Z0-9]+$/.test((req.url || "").split("?")[0]);
 

@@ -486,7 +486,7 @@ p {
   margin-top: 2.3rem;
 }
 
-.availability-dots span {
+.availability-dots > span:not(.availability-legend) {
   width: 0.58rem;
   height: 0.58rem;
   border-radius: 50%;
@@ -501,7 +501,8 @@ p {
 }
 
 .availability-dots small {
-  margin-left: 0.7rem;
+  flex-basis: 100%;
+  margin-left: 0;
   color: #eef5eb;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
@@ -510,7 +511,10 @@ p {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  margin-left: 0.6rem;
+  width: auto;
+  height: auto;
+  margin-left: 0.75rem;
+  border-radius: 0;
   color: #eef5eb;
   font-size: 0.8rem;
 }
@@ -1221,6 +1225,26 @@ textarea {
   width: auto;
   min-height: 2.2rem;
   padding: 0.35rem 0.55rem;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.checkbox-label input {
+  width: 1.1rem;
+  min-height: 1.1rem;
+}
+
+.calendar-sync-help {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.calendar-sync-help .copy-box {
+  margin-top: 0;
 }
 
 .tabs {

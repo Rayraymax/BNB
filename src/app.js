@@ -2,14 +2,17 @@ import {
   createInquiry,
   currentUser,
   deleteBooking,
+  deleteCalendarSync,
   deleteInquiry,
   deleteRoom,
   deleteService,
   deleteTestimonial,
   getContent,
+  getCalendarSyncs,
   isSupabaseConfigured,
   rangesOverlap,
   saveBooking,
+  saveCalendarSync,
   saveRoom,
   saveService,
   saveSettings,
@@ -20,6 +23,7 @@ import {
   updateInquiry,
   uploadMedia
 } from "./lib/db.js";
+import { SITE_BASE_URL } from "./config.js";
 import { lodgingJsonLd, roomJsonLd, serviceJsonLd, setSeo } from "./lib/seo.js";
 import { roomBookingMessage, serviceOrderMessage, whatsappUrl } from "./lib/whatsapp.js";
 
@@ -523,6 +527,14 @@ function renderAuth() {
 async function renderAdmin(section) {
   user = await currentUser();
   if (!user) return renderAuth();
+  if (section === "calendar") {
+    try {
+      store.calendarSyncs = await getCalendarSyncs();
+    } catch (error) {
+      store.calendarSyncs = [];
+      showToast(`Calendar sync table is not ready: ${error.message}`, true);
+    }
+  }
   setSeo({
     title: `Admin | ${store.settings.name}`,
     description: "Owner dashboard for managing the BnB platform.",
@@ -535,6 +547,7 @@ async function renderAdmin(section) {
     services: adminServices,
     site: adminSite,
     bookings: adminBookings,
+    calendar: adminCalendar,
     media: adminMedia,
     testimonials: adminTestimonials,
     inquiries: adminInquiries
@@ -548,6 +561,7 @@ async function renderAdmin(section) {
         <a href="/admin/rooms" data-link class="${section === "rooms" ? "active" : ""}">Rooms</a>
         <a href="/admin/services" data-link class="${section === "services" ? "active" : ""}">Services</a>
         <a href="/admin/bookings" data-link class="${section === "bookings" ? "active" : ""}">Bookings</a>
+        <a href="/admin/calendar" data-link class="${section === "calendar" ? "active" : ""}">Calendar sync</a>
         <a href="/admin/site" data-link class="${section === "site" ? "active" : ""}">Site settings</a>
         <a href="/admin/media" data-link class="${section === "media" ? "active" : ""}">Media</a>
         <a href="/admin/testimonials" data-link class="${section === "testimonials" ? "active" : ""}">Testimonials</a>
@@ -778,6 +792,46 @@ function adminBookings() {
   `;
 }
 
+function adminCalendar() {
+  const base = calendarBaseUrl();
+  return `
+    <div class="admin-head"><h2>Calendar sync</h2><p>Export your website availability and import each room's Booking.com calendar.</p></div>
+    <section class="admin-panel calendar-sync-help">
+      <h3>Website export links</h3>
+      <p>Use a room-specific link for each matching Booking.com unit. The unfiltered link contains every booked room and is useful for a combined overview.</p>
+      <div class="copy-box"><strong>All booked dates</strong><code>${esc(`${base}/calendar.ics`)}</code></div>
+      ${store.rooms.map((room) => `<div class="copy-box"><strong>${esc(room.name)}</strong><code>${esc(`${base}/calendar.ics?room=${encodeURIComponent(room.id)}`)}</code></div>`).join("")}
+    </section>
+    <section class="admin-panel">
+      <h3>Import a Booking.com calendar</h3>
+      <p class="muted">Paste the export URL from Booking.com. The scheduled sync runs every 15 minutes and creates blocked dates with source <code>booking.com</code>.</p>
+      <form data-calendar-form class="admin-form">
+        <input type="hidden" name="id" />
+        <label>Website room <select name="roomId">${store.rooms.map((room) => `<option value="${esc(room.id)}">${esc(room.name)}</option>`).join("")}</select></label>
+        <label>Calendar name <input name="name" value="Booking.com" required /></label>
+        <label class="full">Booking.com .ics URL <input name="feedUrl" type="url" placeholder="https://admin.booking.com/hotel/hoteladmin/ical.html?..." required /></label>
+        <label class="checkbox-label"><input name="enabled" type="checkbox" checked /> Keep this calendar syncing</label>
+        <button class="button accent" type="submit">Save calendar feed</button>
+        <button class="button ghost" type="reset">Clear form</button>
+      </form>
+    </section>
+    <section class="admin-panel"><h3>Imported calendars</h3>${calendarSyncTable()}</section>
+  `;
+}
+
+function calendarBaseUrl() {
+  return String(SITE_BASE_URL || location.origin).replace(/\/$/, "");
+}
+
+function calendarSyncTable() {
+  const syncs = store.calendarSyncs || [];
+  if (!syncs.length) return "<p>No Booking.com calendar feeds configured yet.</p>";
+  return `<div class="responsive-table"><table><thead><tr><th>Room</th><th>Feed</th><th>Status</th><th>Last sync</th><th>Actions</th></tr></thead><tbody>${syncs.map((sync) => {
+    const room = store.rooms.find((item) => item.id === sync.roomId);
+    return `<tr><td>${esc(room?.name || "Unknown room")}</td><td><code>${esc(sync.feedUrl)}</code></td><td>${sync.enabled === false ? "Paused" : "Enabled"}${sync.lastError ? `<br /><small class="form-error">${esc(sync.lastError)}</small>` : ""}</td><td>${esc(formatDisplayDateTime(sync.lastSyncedAt || ""))}</td><td><button class="icon-button" data-edit-calendar="${esc(sync.id)}">Edit</button><button class="icon-button danger" data-delete-calendar="${esc(sync.id)}">Delete</button></td></tr>`;
+  }).join("")}</tbody></table></div>`;
+}
+
 function adminMedia() {
   return `
     <div class="admin-head"><h2>Media</h2><p>Upload images and short videos, choose where they belong, and the dashboard can apply the URL for you.</p></div>
@@ -862,6 +916,7 @@ function bindAdmin(section) {
   if (section === "services") bindServiceAdmin();
   if (section === "site") bindSiteAdmin();
   if (section === "bookings") bindBookingAdmin();
+  if (section === "calendar") bindCalendarAdmin();
   if (section === "media") bindMediaAdmin();
   if (section === "testimonials") bindTestimonialAdmin();
   if (section === "inquiries") bindInquiryAdmin();
@@ -992,6 +1047,33 @@ function bindBookingAdmin() {
       await deleteBooking(button.dataset.deleteBooking);
       await reloadAdmin("bookings", "Booking block removed.");
     });
+  });
+}
+
+function bindCalendarAdmin() {
+  const form = app.querySelector("[data-calendar-form]");
+  app.querySelectorAll("[data-edit-calendar]").forEach((button) => {
+    button.addEventListener("click", () => fillCalendarForm(store.calendarSyncs.find((sync) => sync.id === button.dataset.editCalendar), form));
+  });
+  app.querySelectorAll("[data-delete-calendar]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      if (!confirm("Delete this calendar feed? Imported blocks will remain until cancelled or removed from bookings.")) return;
+      await deleteCalendarSync(button.dataset.deleteCalendar);
+      await reloadAdmin("calendar", "Calendar feed deleted.");
+    });
+  });
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const values = Object.fromEntries(new FormData(form));
+    await saveCalendarSync({
+      id: values.id || undefined,
+      roomId: values.roomId,
+      name: values.name,
+      provider: "booking.com",
+      feedUrl: values.feedUrl,
+      enabled: form.enabled.checked
+    });
+    await reloadAdmin("calendar", "Calendar feed saved.");
   });
 }
 
@@ -1492,6 +1574,16 @@ function fillBookingForm(booking, form) {
   form.startDate.value = booking.startDate || "";
   form.endDate.value = booking.endDate || "";
   form.status.value = booking.status || "confirmed";
+  form.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function fillCalendarForm(sync, form) {
+  if (!sync) return;
+  form.id.value = sync.id || "";
+  form.roomId.value = sync.roomId || "";
+  form.name.value = sync.name || "Booking.com";
+  form.feedUrl.value = sync.feedUrl || "";
+  form.enabled.checked = sync.enabled !== false;
   form.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 

@@ -1,5 +1,12 @@
 [build]
   publish = "."
+  functions = "netlify/functions"
+
+[[redirects]]
+  from = "/calendar.ics"
+  to = "/.netlify/functions/calendar-ics"
+  status = 200
+  force = true
 
 [[redirects]]
   from = "/*"
@@ -10,4 +17,3 @@
   for = "/service-worker.js"
   [headers.values]
     Cache-Control = "no-cache"
-

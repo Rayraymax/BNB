@@ -47,9 +47,11 @@ This creates or safely upgrades:
 - `bookings`
 - `inquiries`
 - `testimonials`
+- `calendar_syncs`
 - `user_roles`
 - public media buckets: `site-media`, `room-images`, `service-images`
 - a database rule that prevents overlapping confirmed bookings for the same room
+- iCal import metadata on bookings (`external_source`, `external_uid`, `last_synced_at`)
 
 For an existing live project, run `schema.sql` before deploying the new frontend. The migration adds policy/payment/location fields and the testimonials table without dropping current rooms, bookings or media. Do not run `seed.sql` against live content unless you intentionally want to overwrite the demo seed rows.
 
@@ -86,6 +88,30 @@ on conflict do nothing;
 
 Only users with this admin role can add, edit or delete rooms, services, bookings and media.
 The owner dashboard also manages testimonials and inquiry status/deletion, plus house rules, cancellation terms, direct-payment instructions, accepted payment methods, taxes/fees notes, exact landmarks and check-in notes.
+
+## iCalendar / Booking.com Calendar Sync
+
+1. Run `supabase/schema.sql` in the SQL Editor before using calendar sync. It adds `calendar_syncs` and the external booking fields without deleting existing bookings.
+2. Deploy the updated project to Netlify.
+3. In Netlify, add the environment variable `SUPABASE_SERVICE_ROLE_KEY` for the scheduled sync function. Keep it server-only; never put it in `src/config.js`.
+4. Sign in to the owner dashboard and open `/admin/calendar`.
+5. Copy the room-specific website export URL shown there, for example:
+
+```text
+https://yourdomain.com/calendar.ics?room=ROOM_ID
+```
+
+6. In Booking.com Extranet, open `Rates & Availability` → `Calendar` / `Sync calendars` → `Import calendar`, paste the matching room URL and save.
+7. In Booking.com Extranet, use `Calendar Sync` → `Export calendar` and copy the Booking.com `.ics` URL.
+8. Return to `/admin/calendar`, choose the same website room, paste the Booking.com URL and save the feed.
+9. The Netlify scheduled function runs every 15 minutes. Imported events are written as confirmed blocks with `source = booking.com`; cancelled or removed external events are marked cancelled so they stop blocking the room.
+10. Test in both directions. iCal is periodic rather than instant, so allow the sync interval and check `/admin/bookings` after each test. Keep the Booking.com room mapping one-to-one; do not use the all-room feed for a single unit.
+
+For local/server deployments, run this from the project root on a scheduler:
+
+```bash
+npm run sync-calendars
+```
 
 ## 5. Connect The App To Supabase
 

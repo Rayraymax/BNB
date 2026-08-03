@@ -23,6 +23,7 @@ function localData() {
     ...item,
     id: item.id || `testimonial-local-${index + 1}`
   }));
+  data.calendarSyncs = data.calendarSyncs || [];
   const fixAssetPath = (value) => String(value || "").replaceAll("/public/assets/", "/assets/");
   data.settings.coverImage = fixAssetPath(data.settings.coverImage);
   data.settings.coverVideo = fixAssetPath(data.settings.coverVideo);
@@ -217,7 +218,10 @@ export async function getContent() {
       roomId: booking.room_id,
       guestName: booking.guest_name,
       startDate: booking.start_date,
-      endDate: booking.end_date
+      endDate: booking.end_date,
+      externalSource: booking.external_source,
+      externalUid: booking.external_uid,
+      lastSyncedAt: booking.last_synced_at
     })),
     inquiries: inquiriesRes.data,
     testimonials: testimonialsRes.error ? clone(mockData.testimonials) : testimonialsRes.data?.map((item) => ({
@@ -442,10 +446,64 @@ export async function saveBooking(booking) {
     start_date: booking.startDate,
     end_date: booking.endDate,
     status: booking.status || "confirmed",
-    source: booking.source || "admin"
+    source: booking.source || "admin",
+    external_source: booking.externalSource || null,
+    external_uid: booking.externalUid || null,
+    last_synced_at: booking.lastSyncedAt || null
   }).select().single();
   if (error) throw error;
   return data;
+}
+
+export async function getCalendarSyncs() {
+  const client = await supabase();
+  if (!client) return localData().calendarSyncs || [];
+  const { data, error } = await client.from("calendar_syncs").select("*").order("created_at");
+  if (error) throw error;
+  return data.map((sync) => ({
+    ...sync,
+    roomId: sync.room_id,
+    feedUrl: sync.feed_url,
+    lastSyncedAt: sync.last_synced_at,
+    lastError: sync.last_error
+  }));
+}
+
+export async function saveCalendarSync(sync) {
+  const client = await supabase();
+  if (!client) {
+    const data = localData();
+    const id = sync.id || crypto.randomUUID();
+    const next = { ...sync, id, enabled: sync.enabled !== false };
+    const index = data.calendarSyncs.findIndex((item) => item.id === id);
+    if (index >= 0) data.calendarSyncs[index] = next;
+    else data.calendarSyncs.push(next);
+    saveLocal(data);
+    return next;
+  }
+  const row = {
+    id: sync.id || crypto.randomUUID(),
+    room_id: sync.roomId,
+    name: sync.name || "Booking.com",
+    provider: sync.provider || "booking.com",
+    feed_url: sync.feedUrl,
+    enabled: sync.enabled !== false
+  };
+  const { data, error } = await client.from("calendar_syncs").upsert(row).select().single();
+  if (error) throw error;
+  return { ...data, roomId: data.room_id, feedUrl: data.feed_url, lastSyncedAt: data.last_synced_at, lastError: data.last_error };
+}
+
+export async function deleteCalendarSync(id) {
+  const client = await supabase();
+  if (!client) {
+    const data = localData();
+    data.calendarSyncs = data.calendarSyncs.filter((sync) => sync.id !== id);
+    saveLocal(data);
+    return;
+  }
+  const { error } = await client.from("calendar_syncs").delete().eq("id", id);
+  if (error) throw error;
 }
 
 export async function deleteBooking(id) {
