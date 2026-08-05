@@ -317,7 +317,7 @@ export const mockData = {
         "Fresh linens, bathroom reset, floor cleaning, trash removal and apartment refresh. Best booked the evening before.",
       hours: "8:00 AM - 5:00 PM",
       contactName: "Housekeeping desk",
-      whatsapp: "254704330604",
+      whatsapp: "254728835882",
       items: [
         { name: "Standard refresh", price: "KSh 800" },
         { name: "Deep clean", price: "KSh 1,800" },
@@ -337,7 +337,7 @@ export const mockData = {
         "Share your flight number and landing time. We help coordinate a direct pickup to ALKEY Homes in Roysambu.",
       hours: "24 hours with advance booking",
       contactName: "Transport desk",
-      whatsapp: "254704330604",
+      whatsapp: "254728835885",
       items: [
         { name: "JKIA pickup", price: "from KSh 4,500" },
         { name: "Wilson pickup", price: "from KSh 3,500" }
