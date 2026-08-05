@@ -13,7 +13,7 @@ export const mockData = {
       "We started ALKEY Homes with a simple belief: a stay should feel less like a rental and more like arriving somewhere already prepared for you. Every apartment is professionally managed, carefully cleaned, verified before check-in and supported by a team that treats hospitality as a personal promise.",
     coverImage: "/assets/uploads/alkey-building-background.jpeg",
     coverVideo: "",
-    whatsapp: "254728835885",
+    whatsapp: "+254728835885",
     phone: "+254 728835885",
     email: "alkeyhomess@gmail.com",
     address: "Roysambu, Nairobi",
