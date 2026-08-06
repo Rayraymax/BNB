@@ -529,8 +529,8 @@ p {
 .availability-legend .full { background: #738176; }
 
 .section {
-  padding-top: clamp(3.5rem, 7vw, 7rem);
-  padding-bottom: clamp(3.5rem, 7vw, 7rem);
+  padding-top: clamp(3rem, 6vw, 6rem);
+  padding-bottom: clamp(3rem, 6vw, 6rem);
 }
 
 .about-band {
@@ -886,8 +886,8 @@ cite {
   grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.95fr);
   gap: clamp(2rem, 5vw, 5rem);
   align-items: center;
-  padding-top: clamp(4rem, 8vw, 8rem);
-  padding-bottom: clamp(3rem, 6vw, 6rem);
+  padding-top: clamp(3.5rem, 7vw, 7rem);
+  padding-bottom: clamp(2.75rem, 5vw, 5rem);
   background: var(--white);
 }
 
@@ -1287,9 +1287,9 @@ textarea {
 .admin-shell {
   display: grid;
   grid-template-columns: 16rem minmax(0, 1fr);
-  gap: 2rem;
+  gap: 1.7rem;
   padding-top: 2rem;
-  padding-bottom: 5rem;
+  padding-bottom: 4.25rem;
   background:
     linear-gradient(180deg, rgba(255, 253, 248, 0.86), rgba(244, 242, 234, 0.98)),
     url("/assets/uploads/alkey-building-background.jpeg") right top / min(48rem, 65vw) auto no-repeat;
@@ -1329,11 +1329,11 @@ textarea {
 
 .admin-content {
   display: grid;
-  gap: 1.5rem;
+  gap: 1.25rem;
 }
 
 .admin-hero {
-  min-height: 12rem;
+  min-height: 10.5rem;
   display: grid;
   align-items: center;
   background:
@@ -1365,7 +1365,7 @@ textarea {
 }
 
 .admin-panel {
-  padding: 1.25rem;
+  padding: 1.1rem;
 }
 
 .stat-grid {

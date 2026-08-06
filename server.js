@@ -2,6 +2,7 @@ import { createServer } from "node:http";
 import { createReadStream, existsSync, readFileSync, statSync } from "node:fs";
 import { extname, join, normalize, sep } from "node:path";
 import { buildCalendarFeed, syncAllCalendars } from "./src/lib/ical.js";
+import { mockData } from "./src/data/mockData.js";
 
 const root = process.cwd();
 const port = Number(process.env.PORT || 5173);
@@ -54,8 +55,18 @@ function htmlEscape(value) {
   return String(value || "").replaceAll("&", "&amp;").replaceAll("\"", "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
 }
 
+function absoluteMetaUrl(path) {
+  const base = "https://alkeyhomes.netlify.app";
+  if (!path) return `${base}/assets/uploads/alkey-building-background.jpeg`;
+  if (/^https?:\/\//.test(path)) return path;
+  return `${base}/${String(path).replace(/^\//, "")}`;
+}
+
 function routeMeta(pathname) {
   const base = "https://alkeyhomes.netlify.app";
+  const room = pathname.startsWith("/rooms/")
+    ? mockData.rooms.find((item) => item.slug === pathname.split("/")[2])
+    : null;
   const routes = {
     "/": ["ALKEY Homes | Roysambu Serviced Apartments", "Book ALKEY Homes serviced apartments in Roysambu with direct WhatsApp support, visible availability and guest services."],
     "/rooms": ["Rooms | ALKEY Homes", "Compare ALKEY Homes serviced apartments in Roysambu and check dates before booking directly."],
@@ -64,18 +75,49 @@ function routeMeta(pathname) {
     "/contact": ["Contact | ALKEY Homes", "Contact ALKEY Homes for directions, booking questions and guest support."],
     "/auth": ["Owner login | ALKEY Homes", "Owner management login for ALKEY Homes rooms, bookings, content and media."]
   };
-  const [title, description] = routes[pathname] || (pathname.startsWith("/rooms/")
-    ? ["Room availability | ALKEY Homes", "View room photos, amenities, availability and direct booking details at ALKEY Homes."]
+  const [title, description] = routes[pathname] || (room
+    ? [`${room.name} | ${mockData.settings.name}`, room.seoDescription || room.description]
     : pathname.startsWith("/services/")
       ? ["Guest service | ALKEY Homes", "View guest service details, prices and WhatsApp ordering information at ALKEY Homes."]
       : routes["/"]);
   const url = `${base}${pathname === "/" ? "/" : pathname}`;
-  return { title, description, url };
+  const isPrivate = pathname === "/auth" || pathname === "/admin" || pathname.startsWith("/admin/");
+  const image = absoluteMetaUrl(room?.coverImage || mockData.settings.coverImage);
+  const jsonLd = room ? {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "LodgingBusiness",
+        name: mockData.settings.name,
+        description: mockData.settings.metaDescription,
+        image: absoluteMetaUrl(mockData.settings.coverImage),
+        url: `${base}/`,
+        telephone: mockData.settings.phone,
+        address: { "@type": "PostalAddress", addressLocality: "Nairobi", addressCountry: "KE" }
+      },
+      {
+        "@type": "HotelRoom",
+        name: room.name,
+        description: room.description,
+        image,
+        containedInPlace: { "@type": "LodgingBusiness", name: mockData.settings.name, url: `${base}/` },
+        occupancy: { "@type": "QuantitativeValue", maxValue: room.capacity },
+        offers: {
+          "@type": "Offer",
+          priceCurrency: "KES",
+          price: room.price,
+          availability: "https://schema.org/InStock",
+          url
+        }
+      }
+    ]
+  } : null;
+  return { title, description, url, image, jsonLd, robots: isPrivate ? "noindex, nofollow, noarchive" : "index, follow" };
 }
 
 function renderShell(pathname) {
   const meta = routeMeta(pathname);
-  return readFileSync(join(root, "index.html"), "utf8")
+  const shell = readFileSync(join(root, "index.html"), "utf8")
     .replace(/<title>[^<]*<\/title>/, `<title>${htmlEscape(meta.title)}</title>`)
     .replace(/(<meta\s+name="description"\s+content=")[^"]*("\s*\/>)/, `$1${htmlEscape(meta.description)}$2`)
     .replace(/(<meta\s+property="og:title"\s+content=")[^"]*("\s*\/>)/, `$1${htmlEscape(meta.title)}$2`)
@@ -84,6 +126,13 @@ function renderShell(pathname) {
     .replace(/(<meta\s+name="twitter:title"\s+content=")[^"]*("\s*\/>)/, `$1${htmlEscape(meta.title)}$2`)
     .replace(/(<meta\s+name="twitter:description"\s+content=")[^"]*("\s*\/>)/, `$1${htmlEscape(meta.description)}$2`)
     .replace(/(<link\s+rel="canonical"\s+href=")[^"]*("\s*\/>)/, `$1${htmlEscape(meta.url)}$2`);
+  return shell
+    .replace(/(<meta\s+name="robots"\s+content=")[^"]*("\s*\/>)/, `$1${htmlEscape(meta.robots)}$2`)
+    .replace(/(<meta\s+property="og:image"\s+content=")[^"]*("\s*\/>)/, `$1${htmlEscape(meta.image)}$2`)
+    .replace(/(<meta\s+name="twitter:image"\s+content=")[^"]*("\s*\/>)/, `$1${htmlEscape(meta.image)}$2`)
+    .replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/, meta.jsonLd
+      ? `<script type="application/ld+json">${JSON.stringify(meta.jsonLd).replaceAll("<", "\\u003c")}</script>`
+      : (match) => match);
 }
 
 createServer(async (req, res) => {

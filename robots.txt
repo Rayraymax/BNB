@@ -1,4 +1,6 @@
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /auth
 
 Sitemap: https://alkeyhomes.netlify.app/sitemap.xml

@@ -73,6 +73,29 @@ function saveLocal(data) {
   return data;
 }
 
+function normalizeBooking(booking) {
+  return {
+    ...booking,
+    roomId: booking.room_id,
+    guestName: booking.guest_name,
+    guestPhone: booking.guest_phone,
+    startDate: booking.start_date,
+    endDate: booking.end_date,
+    externalSource: booking.external_source,
+    externalUid: booking.external_uid,
+    lastSyncedAt: booking.last_synced_at
+  };
+}
+
+function publicLocalData() {
+  const data = localData();
+  return {
+    ...data,
+    bookings: data.bookings.map(({ roomId, startDate, endDate, status }) => ({ roomId, startDate, endDate, status })),
+    inquiries: []
+  };
+}
+
 async function supabase() {
   if (!configured) return null;
   if (supabaseClient) return supabaseClient;
@@ -218,18 +241,22 @@ export function isSupabaseConfigured() {
 
 export async function getContent() {
   const client = await supabase();
-  if (!client) return localData();
+  if (!client) return publicLocalData();
 
-  const [settingsRes, roomsRes, servicesRes, bookingsRes, inquiriesRes, testimonialsRes] = await Promise.all([
+  const [settingsRes, roomsRes, servicesRes, availabilityRes, testimonialsRes] = await Promise.all([
     client.from("site_settings").select("*").eq("id", "site").maybeSingle(),
     client.from("rooms").select("*").order("name"),
     client.from("services").select("*").order("name"),
-    client.from("bookings").select("*").order("start_date"),
-    client.from("inquiries").select("*").order("created_at", { ascending: false }),
+    client.from("room_availability").select("room_id,start_date,end_date,status").order("start_date"),
     client.from("testimonials").select("*").order("review_date", { ascending: false })
   ]);
 
-  for (const result of [settingsRes, roomsRes, servicesRes, bookingsRes, inquiriesRes]) {
+  let safeAvailabilityRes = availabilityRes;
+  if (safeAvailabilityRes.error) {
+    safeAvailabilityRes = await client.from("bookings").select("room_id,start_date,end_date,status").order("start_date");
+  }
+
+  for (const result of [settingsRes, roomsRes, servicesRes, safeAvailabilityRes]) {
     if (result.error) throw result.error;
   }
 
@@ -237,22 +264,31 @@ export async function getContent() {
     settings: normalizeSettings(settingsRes.data) || clone(mockData.settings),
     rooms: roomsRes.data.map(normalizeRoom),
     services: servicesRes.data.map(normalizeService),
-    bookings: bookingsRes.data.map((booking) => ({
-      ...booking,
-      roomId: booking.room_id,
-      guestName: booking.guest_name,
-      guestPhone: booking.guest_phone,
-      startDate: booking.start_date,
-      endDate: booking.end_date,
-      externalSource: booking.external_source,
-      externalUid: booking.external_uid,
-      lastSyncedAt: booking.last_synced_at
-    })),
-    inquiries: inquiriesRes.data,
+    bookings: safeAvailabilityRes.data.map(normalizeBooking),
+    inquiries: [],
     testimonials: testimonialsRes.error ? clone(mockData.testimonials) : testimonialsRes.data?.map((item) => ({
       ...item,
       reviewDate: item.review_date
     })) || clone(mockData.testimonials)
+  };
+}
+
+export async function getAdminContent() {
+  const client = await supabase();
+  if (!client) return localData();
+
+  const [content, bookingsRes, inquiriesRes] = await Promise.all([
+    getContent(),
+    client.from("bookings").select("*").order("start_date"),
+    client.from("inquiries").select("*").order("created_at", { ascending: false })
+  ]);
+  for (const result of [bookingsRes, inquiriesRes]) {
+    if (result.error) throw result.error;
+  }
+  return {
+    ...content,
+    bookings: bookingsRes.data.map(normalizeBooking),
+    inquiries: inquiriesRes.data
   };
 }
 
@@ -284,6 +320,20 @@ export async function currentUser() {
   if (!client) return JSON.parse(localStorage.getItem(SESSION_KEY) || "null");
   const { data } = await client.auth.getUser();
   return data.user;
+}
+
+export async function hasAdminRole() {
+  const client = await supabase();
+  if (!client) return Boolean(localStorage.getItem(SESSION_KEY));
+  const user = await currentUser();
+  if (!user) return false;
+  const { data, error } = await client
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", user.id)
+    .eq("role", "admin")
+    .maybeSingle();
+  return !error && data?.role === "admin";
 }
 
 export async function saveSettings(settings) {

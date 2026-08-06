@@ -269,18 +269,21 @@ to authenticated
 using (public.has_role('admin'))
 with check (public.has_role('admin'));
 
-drop policy if exists "Public can read confirmed bookings" on public.bookings;
-create policy "Public can read confirmed bookings"
-on public.bookings for select
-to anon, authenticated
-using (status = 'confirmed' or public.has_role('admin'));
-
 drop policy if exists "Admins can manage bookings" on public.bookings;
 create policy "Admins can manage bookings"
 on public.bookings for all
 to authenticated
 using (public.has_role('admin'))
 with check (public.has_role('admin'));
+
+drop view if exists public.room_availability;
+create view public.room_availability as
+select room_id, start_date, end_date, status
+from public.bookings
+where status = 'confirmed';
+
+grant select on public.room_availability to anon, authenticated;
+revoke select on public.bookings from anon;
 
 drop policy if exists "Public can create inquiries" on public.inquiries;
 create policy "Public can create inquiries"

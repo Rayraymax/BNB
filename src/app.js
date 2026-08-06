@@ -7,9 +7,11 @@ import {
   deleteRoom,
   deleteService,
   deleteTestimonial,
+  getAdminContent,
   getContent,
   getCalendarSyncs,
   getRoomAccessDetails,
+  hasAdminRole,
   isSupabaseConfigured,
   rangesOverlap,
   saveBooking,
@@ -498,7 +500,8 @@ function renderAuth() {
   setSeo({
     title: `Owner login | ${store.settings.name}`,
     description: "Owner login for managing rooms, services, site media and bookings.",
-    canonical: "/auth"
+    canonical: "/auth",
+    robots: "noindex, nofollow, noarchive"
   });
   app.innerHTML = `
     <section class="auth-screen page-pad">
@@ -529,6 +532,12 @@ function renderAuth() {
 async function renderAdmin(section) {
   user = await currentUser();
   if (!user) return renderAuth();
+  if (!(await hasAdminRole())) {
+    await signOut();
+    user = null;
+    return renderAuth();
+  }
+  store = await getAdminContent();
   if (section === "calendar") {
     try {
       store.calendarSyncs = await getCalendarSyncs();
@@ -548,7 +557,8 @@ async function renderAdmin(section) {
   setSeo({
     title: `Admin | ${store.settings.name}`,
     description: "Owner dashboard for managing the BnB platform.",
-    canonical: "/admin"
+    canonical: "/admin",
+    robots: "noindex, nofollow, noarchive"
   });
 
   const content = {
@@ -1341,7 +1351,7 @@ async function applyUploadedMedia(values, url) {
 }
 
 async function reloadAdmin(section, message) {
-  store = await getContent();
+  store = await getAdminContent();
   hydrateChrome();
   showToast(message);
   history.replaceState({}, "", `/admin/${section === "dashboard" ? "" : section}`.replace(/\/$/, ""));

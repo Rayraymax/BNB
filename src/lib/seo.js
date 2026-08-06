@@ -20,9 +20,10 @@ function upsertMeta(selector, attr, value, content) {
   tag.setAttribute("content", content);
 }
 
-export function setSeo({ title, description, image = defaultImage, canonical = location.pathname, jsonLd }) {
+export function setSeo({ title, description, image = defaultImage, canonical = location.pathname, jsonLd, robots = "index, follow" }) {
   document.title = title;
   upsertMeta('meta[name="description"]', ["name", "description"], null, description);
+  upsertMeta('meta[name="robots"]', ["name", "robots"], null, robots);
   upsertMeta('meta[property="og:title"]', ["property", "og:title"], null, title);
   upsertMeta('meta[property="og:description"]', ["property", "og:description"], null, description);
   upsertMeta('meta[property="og:image"]', ["property", "og:image"], null, absoluteUrl(image));
@@ -85,11 +86,19 @@ export function roomJsonLd(room, settings) {
     "@graph": [
       lodgingJsonLd(settings),
       {
-        "@type": "Product",
+        "@type": "HotelRoom",
         name: room.name,
         description: room.description,
         image: absoluteUrl(room.coverImage),
-        brand: { "@type": "Brand", name: settings.name },
+        containedInPlace: {
+          "@type": "LodgingBusiness",
+          name: settings.name,
+          url: absoluteUrl("/")
+        },
+        occupancy: {
+          "@type": "QuantitativeValue",
+          maxValue: room.capacity
+        },
         offers: {
           "@type": "Offer",
           priceCurrency: "KES",
