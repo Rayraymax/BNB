@@ -7,3 +7,4 @@ export const LOCAL_ADMIN = {
 };
 
 export const SITE_BASE_URL = "https://alkeyhomes.netlify.app/";
+export const OWNER_WHATSAPP_NUMBER = "+254728835885";

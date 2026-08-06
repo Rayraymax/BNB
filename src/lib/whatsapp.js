@@ -1,3 +1,5 @@
+import { OWNER_WHATSAPP_NUMBER } from "../config.js";
+
 export function normalizeWhatsapp(number) {
   return String(number || "").replace(/[^\d]/g, "");
 }
@@ -19,9 +21,8 @@ const defaultTemplates = {
     "Please confirm availability and total price."
   ].join("\n"),
   service: [
-    "Hello {{shortName}},",
-    "I would like to order: {{serviceName}}.",
-    "Kindly share your current menu and pricing."
+    "Hello {{serviceName}},",
+    "I would like to order {{serviceName}}, please share your current menu and price"
   ].join("\n"),
   access: [
     "Hello {{guestName}},",
@@ -61,7 +62,10 @@ export function roomBookingMessage({ room, settings, startDate, endDate, guests,
 
 export function serviceOrderMessage({ service, settings, selectedItems, guestName, note }) {
   const items = selectedItems?.length ? selectedItems.map((item) => item.name).join(", ") : "";
-  return renderWhatsappTemplate(settings.whatsappTemplates?.service || defaultTemplates.service, {
+  const savedTemplate = String(settings.whatsappTemplates?.service || "");
+  const usesServiceNameGreeting = /^Hello\s+{{\s*serviceName\s*}}\s*,/i.test(savedTemplate.trim());
+  const template = usesServiceNameGreeting ? savedTemplate : defaultTemplates.service;
+  return renderWhatsappTemplate(template, {
     shortName: settings.shortName || settings.name,
     serviceName: service.name,
     items,
@@ -95,3 +99,4 @@ export function accessDetailsMessage({ room, guestName, details, settings }) {
 }
 
 export { defaultTemplates };
+export { OWNER_WHATSAPP_NUMBER };

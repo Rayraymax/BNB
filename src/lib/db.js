@@ -1,4 +1,4 @@
-import { SUPABASE_ANON_KEY, SUPABASE_URL, LOCAL_ADMIN } from "../config.js";
+import { SUPABASE_ANON_KEY, SUPABASE_URL, LOCAL_ADMIN, OWNER_WHATSAPP_NUMBER } from "../config.js";
 import { mockData } from "../data/mockData.js";
 import { defaultTemplates } from "./whatsapp.js";
 
@@ -20,6 +20,10 @@ function localData() {
   }
   const data = JSON.parse(saved);
   data.settings = { ...clone(mockData.settings), ...(data.settings || {}) };
+  data.settings.whatsapp = OWNER_WHATSAPP_NUMBER;
+  if (!/^Hello\s+{{\s*serviceName\s*}}\s*,/i.test((data.settings.whatsappTemplates?.service || "").trim())) {
+    data.settings.whatsappTemplates.service = defaultTemplates.service;
+  }
   if (data.settings.whatsappTemplates?.access && /{{\s*(doorPass|roomCode)\s*}}/i.test(data.settings.whatsappTemplates.access)) {
     data.settings.whatsappTemplates.access = defaultTemplates.access;
   }
@@ -83,8 +87,12 @@ function normalizeSettings(row) {
   if (whatsappTemplates.access && /{{\s*(doorPass|roomCode)\s*}}/i.test(whatsappTemplates.access)) {
     whatsappTemplates.access = defaultTemplates.access;
   }
+  if (!/^Hello\s+{{\s*serviceName\s*}}\s*,/i.test((whatsappTemplates.service || "").trim())) {
+    whatsappTemplates.service = defaultTemplates.service;
+  }
   return {
     ...row,
+    whatsapp: OWNER_WHATSAPP_NUMBER,
     whyChoose: row.why_choose || row.whyChoose || [],
     story: row.story || "",
     stats: row.stats || [],
@@ -121,7 +129,7 @@ function toSettingsRow(settings) {
     story: settings.story,
     cover_image: settings.coverImage,
     cover_video: settings.coverVideo,
-    whatsapp: settings.whatsapp,
+    whatsapp: OWNER_WHATSAPP_NUMBER,
     phone: settings.phone,
     email: settings.email,
     address: settings.address,

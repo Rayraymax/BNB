@@ -25,7 +25,7 @@ import {
   updateInquiry,
   uploadMedia
 } from "./lib/db.js";
-import { SITE_BASE_URL } from "./config.js";
+import { OWNER_WHATSAPP_NUMBER, SITE_BASE_URL } from "./config.js";
 import { lodgingJsonLd, roomJsonLd, serviceJsonLd, setSeo } from "./lib/seo.js";
 import { accessDetailsMessage, roomBookingMessage, serviceOrderMessage, whatsappUrl } from "./lib/whatsapp.js";
 
@@ -98,7 +98,7 @@ function hydrateChrome() {
     node.alt = store.settings.name;
   });
   document.querySelector("[data-whatsapp-global]").href = whatsappUrl(
-    store.settings.whatsapp,
+    OWNER_WHATSAPP_NUMBER,
     `Hello ${store.settings.shortName || store.settings.name}, I have a question about booking.`
   );
   renderFooter();
@@ -121,7 +121,7 @@ function renderFooter() {
       <section>
         <h2>Reach us</h2>
         <a href="/contact" data-link>Contact and map</a>
-        <a href="${whatsappUrl(store.settings.whatsapp, "Hello, I would like help with a stay.")}">Chat on WhatsApp</a>
+        <a href="${whatsappUrl(OWNER_WHATSAPP_NUMBER, "Hello, I would like help with a stay.")}">Chat on WhatsApp</a>
         <a href="/auth" data-link>Owner login</a>
       </section>
     </div>
@@ -178,7 +178,7 @@ function renderHome() {
         <p>${esc(settings.about.split(". ").slice(0, 2).join(". ").replace(/\.{2,}$/g, ""))}.</p>
         <div class="button-row">
           <a class="button outline" href="/rooms" data-link>Explore rooms</a>
-          <a class="button accent" href="${whatsappUrl(settings.whatsapp, `Hello ${settings.shortName}, I would like to book a stay.`)}">Book on WhatsApp</a>
+          <a class="button accent" href="${whatsappUrl(OWNER_WHATSAPP_NUMBER, `Hello ${settings.shortName}, I would like to book a stay.`)}">Book on WhatsApp</a>
         </div>
         <form class="hero-booking" data-hero-booking>
           <label><span>Check-in <small>dd/mm/yyyy</small></span><input name="startDate" type="date" min="${todayIso()}" required /></label>
@@ -646,7 +646,7 @@ function arrivalRows() {
       <article>
         <div><strong>${esc(booking.guestName)}</strong><span>${arriving ? "Arriving" : "Departing"}</span></div>
         <div><span>${esc(room?.name || "Unknown room")}</span><small>${esc(arriving ? booking.startDate : booking.endDate)}</small></div>
-        <a class="button ghost small" href="${whatsappUrl(store.settings.whatsapp, message)}">WhatsApp</a>
+        <a class="button ghost small" href="${whatsappUrl(OWNER_WHATSAPP_NUMBER, message)}">WhatsApp</a>
       </article>
     `;
   }).join("")}</div>`;
@@ -754,7 +754,7 @@ function adminSite() {
         <label>Name <input name="name" value="${esc(settings.name)}" required /></label>
         <label>Short name <input name="shortName" value="${esc(settings.shortName)}" /></label>
         <label>Logo image URL <input name="logoImage" value="${esc(settings.logoImage || "/assets/brand/alkey-logo.png")}" /></label>
-        <label>WhatsApp <input name="whatsapp" value="${esc(settings.whatsapp)}" required /></label>
+        <label>WhatsApp <input name="whatsapp" value="${esc(OWNER_WHATSAPP_NUMBER)}" required /></label>
         <label>Phone <input name="phone" value="${esc(settings.phone)}" /></label>
         <label>Email <input name="email" value="${esc(settings.email)}" /></label>
         <label>Address <input name="address" value="${esc(settings.address)}" /></label>
@@ -1055,7 +1055,7 @@ function bindServiceAdmin() {
       description: values.description,
       hours: values.hours,
       contactName: values.contactName,
-      whatsapp: values.whatsapp || store.settings.whatsapp,
+      whatsapp: values.whatsapp || OWNER_WHATSAPP_NUMBER,
       items: splitLines(values.items).map((line) => {
         const [name, price] = line.split("|").map((part) => part.trim());
         return { name, price: price || "" };
@@ -1076,6 +1076,7 @@ function bindSiteAdmin() {
     await saveSettings({
       ...store.settings,
       ...values,
+      whatsapp: OWNER_WHATSAPP_NUMBER,
       socials: store.settings.socials,
       houseRules: splitLines(values.houseRules),
       paymentMethods: splitLines(values.paymentMethods),
@@ -1383,7 +1384,7 @@ async function handleRoomBooking(event) {
 
   const totalCost = nightsBetween(values.startDate, values.endDate) * Number(room.price || 0);
   const message = roomBookingMessage({ room, settings: store.settings, totalCost, ...values });
-  openWhatsapp(store.settings.whatsapp, message);
+  openWhatsapp(OWNER_WHATSAPP_NUMBER, message);
   await createInquiry({
     type: "room",
     roomId: room.id,
@@ -1462,7 +1463,7 @@ async function handleServiceOrder(event) {
   }));
   const message = serviceOrderMessage({ service, settings: store.settings, selectedItems, ...values });
   // Open WhatsApp immediately
-openWhatsapp(service.whatsapp || store.settings.whatsapp, message);
+  openWhatsapp(service.whatsapp || OWNER_WHATSAPP_NUMBER, message);
 
 // Save the inquiry in the background
 createInquiry({
@@ -1489,7 +1490,7 @@ function roomCard(room) {
         <p>${esc(room.description)}</p>
         <div class="button-row">
           <a class="button ghost small" href="/rooms/${esc(room.slug)}" data-link>View room</a>
-          <a class="button accent small" href="${whatsappUrl(store.settings.whatsapp, `Hello ${store.settings.shortName}, I would like to book ${room.name}.`)}">Book on WhatsApp</a>
+          <a class="button accent small" href="${whatsappUrl(OWNER_WHATSAPP_NUMBER, `Hello ${store.settings.shortName}, I would like to book ${room.name}.`)}">Book on WhatsApp</a>
         </div>
       </div>
     </article>
@@ -1527,7 +1528,7 @@ function locationBlock() {
           <div><dt>Email</dt><dd>${esc(settings.email)}</dd></div>
         </dl>
         <p class="muted contact-note">${esc(settings.checkInNotes || "Arrival instructions are shared after confirmation.")}</p>
-        <a class="button accent" href="${whatsappUrl(settings.whatsapp, `Hello ${settings.shortName}, I need directions.`)}">Chat on WhatsApp</a>
+        <a class="button accent" href="${whatsappUrl(OWNER_WHATSAPP_NUMBER, `Hello ${settings.shortName}, I need directions.`)}">Chat on WhatsApp</a>
       </div>
     </section>
   `;

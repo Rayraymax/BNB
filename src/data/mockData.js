@@ -36,7 +36,7 @@ export const mockData = {
     taxNote: "Rates are shown in Kenyan shillings. Confirm applicable taxes or fees with the owner before payment.",
     whatsappTemplates: {
       booking: "Hello {{shortName}},\nI would like to book {{roomName}}.\nDates: {{startDate}} to {{endDate}}\nGuests: {{guests}}\nEstimated total: KSh {{totalCost}}\nName: {{guestName}}\nNote: {{note}}\nPlease confirm availability and total price.",
-      service: "Hello {{shortName}},\nI would like to order: {{serviceName}}.\nKindly share your current menu and pricing.",
+      service: "Hello {{serviceName}},\nI would like to order {{serviceName}}, please share your current menu and price",
       access: "Hello {{guestName}},\nYour booking is confirmed.\n{{propertyName}}\nHouse: {{houseToCheckIn}}\nDirections: {{directions}}\n{{lockboxInstructions}}\nLock box password: {{lockboxPassword}}\nPhase: {{phase}}\nWiFi name: {{wifiName}}\nWiFi password: {{wifiPassword}}\nCheck-in: {{checkInTime}}\nCheck-out: {{checkOutTime}}\n{{checkOutNotes}}\nHouse rules:\n{{houseRules}}\n{{additionalNotes}}"
     },
     socials: {
